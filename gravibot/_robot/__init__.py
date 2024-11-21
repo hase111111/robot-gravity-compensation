@@ -1,3 +1,5 @@
+"""This module provides classes for robot parameters."""
+
 # -*- coding: utf-8 -*-
 
 # Copyright (c) 2024 Taisei Hasegawa

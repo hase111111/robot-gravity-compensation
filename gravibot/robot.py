@@ -1,6 +1,4 @@
-import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-from matplotlib.widgets import Slider
 import numpy as np
 from .render import *
 from ._math import *
@@ -22,7 +20,7 @@ class Robot:
     def get_joint_pos(self, i):
         return conv_trans2pos(self.get_joint_trans(i))
 
-    def draw(self, ax):
+    def draw(self, ax: Axes3D):
         for i in range(self._param.get_num_links() - 1):
             draw_cylinder(
                 radius=1.5,
@@ -37,7 +35,7 @@ class Robot:
         self.draw_link(ax, self._origin, self.get_joint_pos(0))
         draw_cylinder(radius=3, height=2.0, num_slices=20, color="green", ax=ax)
 
-    def draw_link(self, ax, pos1, pos2):
+    def draw_link(self, ax: Axes3D, pos1, pos2):
         length = np.linalg.norm(pos2 - pos1)
         pos1to2 = pos2 - pos1
         pos_center = pos1 + pos1to2 / 2
@@ -81,51 +79,10 @@ class Robot:
         )
 
         draw_cylinder(
-            radius=1, height=length, num_slices=20, color="red", ax=ax, trans=trans
+            radius=1,
+            height=float(length),
+            num_slices=20,
+            color="red",
+            ax=ax,
+            trans=trans,
         )
-
-
-def main():
-    param = RobotParam()
-    param.add_link(LinkParam(a=0, alpha=np.pi / 2, d=10, theta=0))
-    param.add_link(LinkParam(a=10, alpha=0, d=0, theta=0))
-    param.add_link(LinkParam(a=10, alpha=0, d=0, theta=0))
-
-    robot = Robot(param)
-
-    fig = plt.figure(figsize=(8, 6))
-    ax = fig.add_subplot(111, projection="3d")
-    ax.set_xlim(-30, 30)
-    ax.set_ylim(-30, 30)
-    ax.set_zlim(-30, 30)
-    ax.set_aspect("equal")
-    robot.draw(ax)
-
-    # スライダーの追加
-    sliders = []
-    slider_ax_start = 0.25
-    for i in range(len(param.get_num_links())):
-        ax_slider = plt.axes([0.2, slider_ax_start, 0.65, 0.03])
-        slider = Slider(ax_slider, f"Link {i+1} θ", -np.pi, np.pi, valinit=0.0)
-        sliders.append(slider)
-        slider_ax_start -= 0.05
-
-    def update(val):
-        ax.clear()
-        for i, slider in enumerate(sliders):
-            param.set_val(i, slider.val)
-        robot.draw(ax)
-        ax.set_xlim(-30, 30)
-        ax.set_ylim(-30, 30)
-        ax.set_zlim(-30, 30)
-        ax.set_aspect("equal")
-        plt.draw()
-
-    for slider in sliders:
-        slider.on_changed(update)
-
-    plt.show()
-
-
-if __name__ == "__main__":
-    main()
