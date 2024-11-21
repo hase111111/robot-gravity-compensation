@@ -4,7 +4,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.widgets import Slider
 from .render import draw_cylinder
 from ._math.trans import *
-from .robot import Robot, RobotParam
+from ._robot import Robot, RobotParam
 
 
 class EndEffecter:
