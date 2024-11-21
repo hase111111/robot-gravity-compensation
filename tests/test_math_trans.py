@@ -1,3 +1,5 @@
+"""provides unit tests for the functions in gravity_compensation"""
+
 # -*- coding: utf-8 -*-
 
 # Copyright (c) 2024 Taisei Hasegawa

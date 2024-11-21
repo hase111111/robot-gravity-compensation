@@ -5,11 +5,12 @@
 # https://opensource.org/licenses/mit-license.php
 
 from numpy.typing import NDArray
+import numpy as np
 from typing import TypeAlias
 
-TransMatrix: TypeAlias = NDArray
-RotationMatrix: TypeAlias = NDArray
-PositionVector: TypeAlias = NDArray
+TransMatrix: TypeAlias = NDArray[np.float64]
+RotationMatrix: TypeAlias = NDArray[np.float64]
+PositionVector: TypeAlias = NDArray[np.float64]
 
 
 def is_trans_matrix(matrix: NDArray) -> bool:

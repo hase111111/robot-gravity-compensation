@@ -1,4 +1,7 @@
 {
     "editor.defaultFormatter": "ms-python.black-formatter",
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "pylint.args": [
+        "--disable=C0301",  // line-too-long
+      ],
 }
