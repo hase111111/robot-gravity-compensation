@@ -112,7 +112,8 @@ def zero_small_values4x4(trans: TransMatrix) -> TransMatrix:
         # 入力が4x4行列でなければ例外を投げる
         raise ValueError("Input matrix must be 4x4.")
 
-    trans[np.abs(trans) < 1e-10] = 0.0  # 小さな値をゼロに置き換え
+    eps: float = 1e-10
+    trans[np.abs(trans) <= eps] = 0.0  # 小さな値をゼロに置き換え
     return trans
 
 
