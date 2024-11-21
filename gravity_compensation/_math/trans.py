@@ -92,7 +92,7 @@ def get_trans4x4(x: float, y: float, z: float) -> TransMatrix:
     )
 
 
-def zero_small_values(trans: TransMatrix) -> TransMatrix:
+def zero_small_values4x4(trans: TransMatrix) -> TransMatrix:
     """
     小さな値を0に置き換える関数。
 

@@ -7,9 +7,7 @@
 
 import numpy as np
 
-# from .._math.trans import get_rot4x4, get_trans4x4, zero_small_values
-from .._math import get_rot4x4, get_trans4x4, zero_small_values
-from .._math.type import TransMatrix
+from .._math import *
 
 
 def define_property(self, name, *, init_value=None, can_get=True, can_set=True):
@@ -58,4 +56,4 @@ class LinkParam:
             @ get_trans4x4(self.a, 0.0, 0.0)
             @ get_rot4x4("x", self.alpha)
         )
-        return zero_small_values(ans)
+        return zero_small_values4x4(ans)
