@@ -11,13 +11,13 @@ import unittest
 import numpy as np
 
 try:
-    from gravity_compensation._math.rot import get_rot3x3
+    from gravibot._math.rot import get_rot3x3
 except ImportError:
     import os
     import sys
 
     sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-    from gravity_compensation._math.rot import get_rot3x3
+    from gravibot._math.rot import get_rot3x3
 
 
 class TestMathRot(unittest.TestCase):

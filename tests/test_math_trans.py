@@ -11,12 +11,12 @@ import unittest
 import numpy as np
 
 try:
-    from gravity_compensation._math.trans import *
+    from gravibot._math.trans import *
 except:
     import os, sys
 
     sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-    from gravity_compensation._math.trans import *
+    from gravibot._math.trans import *
 
 
 class TestMathTrans(unittest.TestCase):

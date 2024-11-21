@@ -8,12 +8,12 @@
 import unittest
 
 try:
-    from gravity_compensation._math.axis import _axis_name_check
+    from gravibot._math.axis import _axis_name_check
 except:
     import os, sys
 
     sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-    from gravity_compensation._math.axis import _axis_name_check
+    from gravibot._math.axis import _axis_name_check
 
 
 class TestTransformations(unittest.TestCase):

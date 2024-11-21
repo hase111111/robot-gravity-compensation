@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.widgets import Slider
-import gravity_compensation as gc
+import gravibot as gc
 
 plt.rcParams["font.family"] = "TakaoPGothic"
 plt.rcParams["font.size"] = 12
