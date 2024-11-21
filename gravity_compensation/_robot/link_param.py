@@ -7,7 +7,8 @@
 
 import numpy as np
 
-from .._math.trans import get_rot4x4, get_trans4x4, zero_small_values
+# from .._math.trans import get_rot4x4, get_trans4x4, zero_small_values
+from .._math import get_rot4x4, get_trans4x4, zero_small_values
 from .._math.type import TransMatrix
 
 
