@@ -6,7 +6,9 @@
 
 
 from .link_param import LinkParam
+from .robot_param import RobotParam
 
 __all__ = [
     "LinkParam",
+    "RobotParam",
 ]

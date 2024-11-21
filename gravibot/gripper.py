@@ -195,7 +195,7 @@ def main():
     def update(val):
         reset_graph(ax)
         for i, slider in enumerate(sliders):
-            param.set_theta(i, slider.val)
+            param.set_val(i, slider.val)
         robot.draw(ax)
         endeffecter.origin = robot.get_joint_pos(2)
         endeffecter.draw(ax, robot.get_joint_trans(2))

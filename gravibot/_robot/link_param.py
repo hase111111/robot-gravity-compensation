@@ -1,3 +1,5 @@
+"""provide LinkParam class"""
+
 # -*- coding: utf-8 -*-
 
 # Copyright (c) 2024 Taisei Hasegawa
@@ -7,23 +9,13 @@
 
 import numpy as np
 
-from .._math import *
-
-
-def define_property(self, name, *, init_value=None, can_get=True, can_set=True):
-    # "_User__name" のような name mangling 後の名前.
-    field_name = "_{}__{}".format(self.__class__.__name__, name)
-
-    # 初期値を設定する.
-    setattr(self, field_name, init_value)
-
-    # getter/setter を生成し, プロパティを定義する.
-    getter = (lambda self: getattr(self, field_name)) if can_get else None
-    setter = (lambda self, value: setattr(self, field_name, value)) if can_set else None
-    setattr(self.__class__, name, property(getter, setter))
+from .._math.type import TransMatrix
+from .._math.trans import get_rot4x4, get_trans4x4, zero_small_values4x4
 
 
 class LinkParam:
+    """class for link parameters"""
+
     def __init__(
         self,
         a: float,
@@ -33,23 +25,18 @@ class LinkParam:
         *,
         is_rot_axis: bool = True,
         min_val: float = -np.pi,
-        max_val: float = np.pi
+        max_val: float = np.pi,
     ):
-        define_property(self, "a", init_value=a, can_set=False)
-        define_property(self, "alpha", init_value=alpha, can_set=False)
-
-        define_property(self, "is_rot_axis", init_value=is_rot_axis, can_set=False)
-        define_property(self, "min_val", init_value=min_val, can_set=False)
-        define_property(self, "max_val", init_value=max_val, can_set=False)
-
-        if is_rot_axis:
-            define_property(self, "d", init_value=d, can_set=False)
-            define_property(self, "theta", init_value=theta)
-        else:
-            define_property(self, "d", init_value=d)
-            define_property(self, "theta", init_value=theta, can_set=False)
+        self._a = a
+        self._alpha = alpha
+        self._d = d
+        self._theta = theta
+        self.is_rot_axis = is_rot_axis
+        self.min_val = min_val
+        self.max_val = max_val
 
     def get_trans_mat(self) -> TransMatrix:
+        """return link's A matrix"""
         ans = (
             get_rot4x4("z", self.theta)
             @ get_trans4x4(0.0, 0.0, self.d)
@@ -57,3 +44,54 @@ class LinkParam:
             @ get_rot4x4("x", self.alpha)
         )
         return zero_small_values4x4(ans)
+
+    def set_val(self, d: float, theta: float):
+        """set d and theta"""
+        if self.is_rot_axis:
+            if not self.min_val <= theta <= self.max_val:
+                raise ValueError(
+                    f"theta should be in range [{self.min_val}, {self.max_val}]"
+                )
+            self._theta = theta
+        else:
+            if not self.min_val <= d <= self.max_val:
+                raise ValueError(
+                    f"d should be in range [{self.min_val}, {self.max_val}]"
+                )
+            self._d = d
+
+    @property
+    def a(self) -> float:
+        """getter for a, a is read-only"""
+        return self._a
+
+    @a.setter
+    def a(self, _):
+        raise AttributeError("a is read-only")
+
+    @property
+    def alpha(self) -> float:
+        """getter for alpha, alpha is read-only"""
+        return self._alpha
+
+    @alpha.setter
+    def alpha(self, _):
+        raise AttributeError("alpha is read-only")
+
+    @property
+    def d(self) -> float:
+        """getter for d, d can being changed by set method"""
+        return self._d
+
+    @d.setter
+    def d(self, _):
+        raise AttributeError("Should use set_val method")
+
+    @property
+    def theta(self) -> float:
+        """getter for theta, theta can being changed by set method"""
+        return self._theta
+
+    @theta.setter
+    def theta(self, _):
+        raise AttributeError("Should use set_val method")

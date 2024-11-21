@@ -3,26 +3,13 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.widgets import Slider
 import numpy as np
 from .render import *
-from ._math.trans import *
+from ._math import *
 from ._robot.link_param import *
-
-
-class RobotParam:
-    def __init__(self):
-        self.link = []
-
-    def add_link(self, a, alpha, d, theta):
-        self.link.append(LinkParam(a, alpha, d, theta))
-
-    def set_theta(self, i, theta):
-        self.link[i].theta = theta
-
-    def get_link(self, i):
-        return self.link[i]
+from ._robot.robot_param import *
 
 
 class Robot:
-    def __init__(self, param):
+    def __init__(self, param: RobotParam):
         self._param = param
         self._origin = np.zeros(3)
 
@@ -36,7 +23,7 @@ class Robot:
         return conv_trans2pos(self.get_joint_trans(i))
 
     def draw(self, ax):
-        for i in range(len(self._param.link) - 1):
+        for i in range(self._param.get_num_links() - 1):
             draw_cylinder(
                 radius=1.5,
                 height=3.0,
@@ -100,9 +87,9 @@ class Robot:
 
 def main():
     param = RobotParam()
-    param.add_link(a=0, alpha=np.pi / 2, d=10, theta=0)
-    param.add_link(a=10, alpha=0, d=0, theta=0)
-    param.add_link(a=10, alpha=0, d=0, theta=0)
+    param.add_link(LinkParam(a=0, alpha=np.pi / 2, d=10, theta=0))
+    param.add_link(LinkParam(a=10, alpha=0, d=0, theta=0))
+    param.add_link(LinkParam(a=10, alpha=0, d=0, theta=0))
 
     robot = Robot(param)
 
@@ -117,7 +104,7 @@ def main():
     # スライダーの追加
     sliders = []
     slider_ax_start = 0.25
-    for i in range(len(param.link)):
+    for i in range(len(param.get_num_links())):
         ax_slider = plt.axes([0.2, slider_ax_start, 0.65, 0.03])
         slider = Slider(ax_slider, f"Link {i+1} θ", -np.pi, np.pi, valinit=0.0)
         sliders.append(slider)
@@ -126,7 +113,7 @@ def main():
     def update(val):
         ax.clear()
         for i, slider in enumerate(sliders):
-            param.set_theta(i, slider.val)
+            param.set_val(i, slider.val)
         robot.draw(ax)
         ax.set_xlim(-30, 30)
         ax.set_ylim(-30, 30)

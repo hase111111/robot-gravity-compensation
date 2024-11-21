@@ -28,9 +28,9 @@ def reset_table(ax) -> None:
 
 def make_robot_param() -> gb.RobotParam:
     param = gb.RobotParam()
-    param.add_link(a=0, alpha=np.pi / 2, d=10, theta=0)
-    param.add_link(a=10, alpha=-np.pi / 2, d=0, theta=0)
-    param.add_link(a=10, alpha=0, d=0, theta=0)
+    param.add_link(gb.LinkParam(a=0, alpha=np.pi / 2, d=10, theta=0))
+    param.add_link(gb.LinkParam(a=10, alpha=-np.pi / 2, d=0, theta=0))
+    param.add_link(gb.LinkParam(a=10, alpha=0, d=0, theta=0))
 
     return param
 
@@ -110,14 +110,14 @@ def main():
     draw_table(table, robot, endeffecter)
 
     # スライダーの追加
-    sliders = add_slider(ax, 0.13, len(param.link))
+    sliders = add_slider(ax, 0.13, param.get_num_links())
 
     # スライダーの更新時に呼び出す関数
     def update(_):
         reset_graph(ax)
         reset_table(table)
         for i, slider in enumerate(sliders):
-            param.set_theta(i, slider.val)
+            param.set_val(i, slider.val)
         robot.draw(ax)
         endeffecter.origin = robot.get_joint_pos(2)
         endeffecter.draw(ax, robot.get_joint_trans(2))
