@@ -45,20 +45,16 @@ class LinkParam:
         )
         return zero_small_values4x4(ans)
 
-    def set_val(self, d: float, theta: float):
+    def set_val(self, val: float) -> None:
         """set d and theta"""
+        if not self.min_val <= val <= self.max_val:
+            raise ValueError(
+                f"theta should be in range [{self.min_val}, {self.max_val}]"
+            )
         if self.is_rot_axis:
-            if not self.min_val <= theta <= self.max_val:
-                raise ValueError(
-                    f"theta should be in range [{self.min_val}, {self.max_val}]"
-                )
-            self._theta = theta
+            self._theta = val
         else:
-            if not self.min_val <= d <= self.max_val:
-                raise ValueError(
-                    f"d should be in range [{self.min_val}, {self.max_val}]"
-                )
-            self._d = d
+            self._d = val
 
     @property
     def a(self) -> float:

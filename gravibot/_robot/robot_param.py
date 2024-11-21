@@ -1,13 +1,28 @@
 """provides the RobotParam class"""
 
+# -*- coding: utf-8 -*-
+
+# Copyright (c) 2024 Taisei Hasegawa
+# Released under the MIT license
+# https://opensource.org/licenses/mit-license.php
+
+
+from typing import List, Optional
+
 from .link_param import LinkParam
 
 
 class RobotParam:
     """provides the RobotParam class"""
 
-    def __init__(self):
-        self._link = []
+    def __init__(self, *, param_list: Optional[List[LinkParam]] = None) -> None:
+        if param_list is None:
+            param_list = []
+
+        if not all(isinstance(link_param, LinkParam) for link_param in param_list):
+            raise TypeError("param_list must be a list of LinkParam")
+
+        self._link: List[LinkParam] = param_list
 
     def add_link(self, link_param: LinkParam) -> None:
         """add a link to the robot"""
@@ -18,8 +33,9 @@ class RobotParam:
 
         self._link.append(link_param)
 
-    def set_val(self, i, theta):
-        self._link[i].set_val(i, theta)
+    def set_val(self, i: int, theta: float) -> None:
+        """set the i-th link's theta value"""
+        self._link[i].set_val(theta)
 
     def get_link(self, i: int) -> LinkParam:
         """get the i-th link.
