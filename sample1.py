@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.widgets import Slider
-import gravibot as gc
+import gravibot as gb
 
 plt.rcParams["font.family"] = "TakaoPGothic"
 plt.rcParams["font.size"] = 12
@@ -26,8 +26,8 @@ def reset_table(ax) -> None:
     ax.axis("off")
 
 
-def make_robot_param() -> gc.RobotParam:
-    param = gc.RobotParam()
+def make_robot_param() -> gb.RobotParam:
+    param = gb.RobotParam()
     param.add_link(a=0, alpha=np.pi / 2, d=10, theta=0)
     param.add_link(a=10, alpha=-np.pi / 2, d=0, theta=0)
     param.add_link(a=10, alpha=0, d=0, theta=0)
@@ -46,10 +46,10 @@ def add_slider(ax, slider_ax_start, num_links):
     return sliders
 
 
-def draw_table(ax, robot: gc.Robot, end_effecter: gc.EndEffecter) -> None:
+def draw_table(ax, robot: gb.Robot, end_effecter: gb.EndEffecter) -> None:
     # ロボットの手先の位置を取得
     pos = robot.get_joint_pos(2)
-    coord = gc.trans2rot(robot.get_joint_trans(2))
+    coord = gb.trans2rot(robot.get_joint_trans(2))
     com_pos = [
         end_effecter.com_pos[2],
         end_effecter.com_pos[1],
@@ -95,8 +95,8 @@ def draw_table(ax, robot: gc.Robot, end_effecter: gc.EndEffecter) -> None:
 
 def main():
     param = make_robot_param()
-    robot = gc.Robot(param)
-    endeffecter = gc.EndEffecter([3, 0, 0])
+    robot = gb.Robot(param)
+    endeffecter = gb.EndEffecter([3, 0, 0])
 
     # 3Dグラフの初期化
     fig = plt.figure(figsize=(8, 6))
