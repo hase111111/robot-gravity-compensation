@@ -1,4 +1,4 @@
-"""provide test cases for gravity_compensation._math.rot"""
+"""provide test cases for gravibot._math.rot"""
 
 # -*- coding: utf-8 -*-
 
@@ -21,7 +21,7 @@ except ImportError:
 
 
 class TestMathRot(unittest.TestCase):
-    """test class of gravity_compensation._math.rot"""
+    """test class of gravibot._math.rot"""
 
     def test_get_rot3x3_identity(self):
         """when 0 radian is given,

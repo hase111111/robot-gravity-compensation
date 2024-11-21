@@ -9,8 +9,9 @@ import unittest
 
 try:
     from gravibot._math.axis import _axis_name_check
-except:
-    import os, sys
+except ImportError:
+    import os
+    import sys
 
     sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
     from gravibot._math.axis import _axis_name_check

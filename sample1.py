@@ -1,3 +1,5 @@
+"""provides a sample code to visualize a robot and its end effecter with sliders."""
+
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
