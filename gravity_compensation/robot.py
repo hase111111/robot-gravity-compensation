@@ -13,20 +13,31 @@ class LinkParam:
         self.d = d
         self.theta = theta
 
+    @property
+    def a(self):
+        return self._a
+
+    @a.setter
+    def a(self, _):
+        pass
+
+    @property
+    def alpha(self):
+        return self._alpha
+
+    @alpha.setter
+    def alpha(self, _):
+        pass
+
     def get_trans_mat(self):
         ans = (
             get_rot4x4("z", self.theta)
-            @ get_trans4x4(0, 0, self.d)
-            @ get_trans4x4(self.a, 0, 0)
+            @ get_trans4x4(0.0, 0.0, self.d)
+            @ get_trans4x4(self.a, 0.0, 0.0)
             @ get_rot4x4("x", self.alpha)
         )
 
-        for i in range(4):
-            for j in range(4):
-                if abs(ans[i, j]) < 1e-10:
-                    ans[i, j] = 0.0
-
-        return ans
+        return zero_small_values(ans)
 
 
 class RobotParam:

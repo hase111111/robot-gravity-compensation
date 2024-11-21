@@ -82,6 +82,8 @@ def get_rot4x4(axis: str, theta: float) -> TransMatrix:
 
 def get_trans4x4(x: float, y: float, z: float) -> TransMatrix:
     """
+    指定された方向の移動する同時変換行列を生成する関数．
+
     Parameters
     ----------
     x : float
@@ -98,7 +100,14 @@ def get_trans4x4(x: float, y: float, z: float) -> TransMatrix:
     """
 
     # 移動行列
-    return np.array([[1, 0, 0, x], [0, 1, 0, y], [0, 0, 1, z], [0, 0, 0, 1]])
+    return np.array(
+        [
+            [1.0, 0.0, 0.0, x],
+            [0.0, 1.0, 0.0, y],
+            [0.0, 0.0, 1.0, z],
+            [0.0, 0.0, 0.0, 1.0],
+        ]
+    )
 
 
 def zero_small_values(trans: TransMatrix) -> TransMatrix:
