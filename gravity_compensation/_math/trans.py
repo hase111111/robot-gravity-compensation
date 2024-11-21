@@ -1,32 +1,14 @@
+# -*- coding: utf-8 -*-
+
+# Copyright (c) 2024 Taisei Hasegawa
+# Released under the MIT license
+# https://opensource.org/licenses/mit-license.php
+
+
 import numpy as np
 
-from .type import *
-
-
-def axis_name_check(axis: str) -> str:
-    """
-    入力された回転軸名が正しいか確認する関数．
-    x, y, zのいずれかであることを確認する．
-
-    Parameters
-    ----------
-    axis : str
-        回転軸名．
-
-    Returns
-    -------
-    axis : str
-        回転軸名．
-    """
-    # axisを名寄せ（小文字化し，空白を削除）
-    axis = axis.lower()
-    axis = axis.replace(" ", "")
-
-    # axisはx, y, zのいずれか
-    if axis != "x" and axis != "y" and axis != "z":
-        raise ValueError("axis must be x, y or z")
-
-    return axis
+from .type import TransMatrix, is_trans_matrix
+from .axis import _axis_name_check
 
 
 def get_rot4x4(axis: str, theta: float) -> TransMatrix:
@@ -46,7 +28,7 @@ def get_rot4x4(axis: str, theta: float) -> TransMatrix:
     rot_mat : TransMatrix
         4x4の同時変換行列．
     """
-    a: str = axis_name_check(axis)
+    a: str = _axis_name_check(axis)
 
     # 回転行列（同時変換行列）の生成
     if a == "x":
@@ -132,54 +114,6 @@ def zero_small_values(trans: TransMatrix) -> TransMatrix:
 
     trans[np.abs(trans) < 1e-10] = 0.0  # 小さな値をゼロに置き換え
     return trans
-
-
-def get_rot3x3(axis: str, theta: float) -> RotationMatrix:
-    """
-    指定された軸周りの回転行列を生成する関数．
-    回転行列は3x3の行列である
-
-    Parameters
-    ----------
-    axis : str
-        回転軸．'x', 'y', 'z'のいずれか．
-    theta : float
-        回転角．単位はラジアン．
-
-    Returns
-    -------
-    rot_mat : RotationMatrix
-        3x3の回転行列．
-    """
-    a = axis_name_check(axis)
-
-    # 回転行列の生成
-    if a == "x":
-        rot_mat = np.array(
-            [
-                [1, 0, 0],
-                [0, np.cos(theta), -np.sin(theta)],
-                [0, np.sin(theta), np.cos(theta)],
-            ]
-        )
-    elif a == "y":
-        rot_mat = np.array(
-            [
-                [np.cos(theta), 0, np.sin(theta)],
-                [0, 1, 0],
-                [-np.sin(theta), 0, np.cos(theta)],
-            ]
-        )
-    else:
-        rot_mat = np.array(
-            [
-                [np.cos(theta), -np.sin(theta), 0],
-                [np.sin(theta), np.cos(theta), 0],
-                [0, 0, 1],
-            ]
-        )
-
-    return rot_mat
 
 
 def trans2pos(trans: np.ndarray) -> np.ndarray:
