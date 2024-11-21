@@ -49,7 +49,7 @@ def add_slider(ax, slider_ax_start, num_links):
 def draw_table(ax, robot: gb.Robot, end_effecter: gb.EndEffecter) -> None:
     # ロボットの手先の位置を取得
     pos = robot.get_joint_pos(2)
-    coord = gb.trans2rot(robot.get_joint_trans(2))
+    coord = gb.conv_trans2rot(robot.get_joint_trans(2))
     com_pos = [
         end_effecter.com_pos[2],
         end_effecter.com_pos[1],

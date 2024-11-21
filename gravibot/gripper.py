@@ -15,13 +15,13 @@ class EndEffecter:
         self.AXIS_LENGTH = 20
 
     def draw(self, ax, trans):
-        self.origin = trans2pos(trans)
+        self.origin = conv_trans2pos(trans)
         pos1 = self.origin
         pos2 = [self.com_pos[0] * 2, self.com_pos[1] * 2, self.com_pos[2] * 2]
-        pos2 = trans2rot(trans) @ pos2 + pos1
+        pos2 = conv_trans2rot(trans) @ pos2 + pos1
 
         self.draw_censor_power(trans, ax)
-        tmp = (trans2rot(trans) @ [0, 0, 1]) * self.AXIS_LENGTH
+        tmp = (conv_trans2rot(trans) @ [0, 0, 1]) * self.AXIS_LENGTH
         ax.quiver(
             self.origin[0],
             self.origin[1],
@@ -31,7 +31,7 @@ class EndEffecter:
             tmp[2],
             color="red",
         )
-        tmp = (trans2rot(trans) @ [0, 1, 0]) * self.AXIS_LENGTH
+        tmp = (conv_trans2rot(trans) @ [0, 1, 0]) * self.AXIS_LENGTH
         ax.quiver(
             self.origin[0],
             self.origin[1],
@@ -41,7 +41,7 @@ class EndEffecter:
             tmp[2],
             color="blue",
         )
-        tmp = (trans2rot(trans) @ [1, 0, 0]) * self.AXIS_LENGTH
+        tmp = (conv_trans2rot(trans) @ [1, 0, 0]) * self.AXIS_LENGTH
         ax.quiver(
             self.origin[0],
             self.origin[1],
@@ -146,7 +146,7 @@ class EndEffecter:
         return np.array([ans[2], ans[1], ans[0]])
 
     def draw_censor_power(self, trans, ax):
-        rot = trans2rot(trans)
+        rot = conv_trans2rot(trans)
         power = self.get_censor_power(rot)
         pos = self.origin + self.com_pos @ rot.T
         # 力の矢印を描画

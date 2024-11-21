@@ -9,8 +9,8 @@
 
 import numpy as np
 
-from .type import TransMatrix, is_trans_matrix
 from .axis import _axis_name_check
+from .type import TransMatrix, is_trans_matrix
 
 
 def get_rot4x4(axis: str, theta: float) -> TransMatrix:

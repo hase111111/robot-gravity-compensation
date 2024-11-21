@@ -10,7 +10,7 @@
 import numpy as np
 
 from .axis import _axis_name_check
-from .type import RotationMatrix
+from .type import RotationMatrix, is_rot_matrix
 
 
 def get_rot3x3(axis: str, theta: float) -> RotationMatrix:
@@ -59,3 +59,28 @@ def get_rot3x3(axis: str, theta: float) -> RotationMatrix:
         )
 
     return rot_mat
+
+
+def zero_small_values4x4(trans: RotationMatrix) -> RotationMatrix:
+    """
+    小さな値を0に置き換える関数。
+
+    Parameters
+    ----------
+    trans : RotationMatrix
+        3x3の同次変換行列。
+
+    Returns
+    -------
+    RotationMatrix
+        修正された同次変換行列。
+    """
+    trans = trans.copy()  # 元の行列を保持するためにコピーを作成
+
+    if is_rot_matrix(trans) is False:
+        # 入力が4x4行列でなければ例外を投げる
+        raise ValueError("Input matrix must be 4x4.")
+
+    eps: float = 1e-10
+    trans[np.abs(trans) <= eps] = 0.0  # 小さな値をゼロに置き換え
+    return trans

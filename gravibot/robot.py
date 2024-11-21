@@ -33,7 +33,7 @@ class Robot:
         return trans
 
     def get_joint_pos(self, i):
-        return trans2pos(self.get_joint_trans(i))
+        return conv_trans2pos(self.get_joint_trans(i))
 
     def draw(self, ax):
         for i in range(len(self._param.link) - 1):
