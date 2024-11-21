@@ -1,3 +1,5 @@
+"""provide functions to generate rotation matrix"""
+
 # -*- coding: utf-8 -*-
 
 # Copyright (c) 2024 Taisei Hasegawa
@@ -7,8 +9,8 @@
 
 import numpy as np
 
-from .type import RotationMatrix
 from .axis import _axis_name_check
+from .type import RotationMatrix
 
 
 def get_rot3x3(axis: str, theta: float) -> RotationMatrix:

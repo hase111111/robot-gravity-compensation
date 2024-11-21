@@ -1,3 +1,5 @@
+"""provide functions for axis name check"""
+
 # -*- coding: utf-8 -*-
 
 # Copyright (c) 2024 Taisei Hasegawa
@@ -25,7 +27,7 @@ def _axis_name_check(axis: str) -> str:
     axis = axis.replace(" ", "")
 
     # axisはx, y, zのいずれか
-    if axis != "x" and axis != "y" and axis != "z":
+    if axis not in ["x", "y", "z"]:
         raise ValueError("axis must be x, y or z")
 
     return axis
