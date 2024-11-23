@@ -6,7 +6,7 @@
 
 # 各モジュールをインポート
 from .gripper import *
-from .render import *
+from ._render import *
 from ._robot import *
 from ._math import *
 

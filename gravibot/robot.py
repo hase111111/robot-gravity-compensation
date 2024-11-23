@@ -1,12 +1,14 @@
-from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d import Axes3D  # type: ignore
 import numpy as np
 
 import gravibot._math as _math
 import gravibot._robot as _robot
-from .render import *
+import gravibot._render as _render
 
 
 class Robot:
+    """class for robot"""
+
     def __init__(self, param: _robot.RobotParam):
         if not isinstance(param, _robot.RobotParam):
             raise TypeError(f"param must be RobotParam, not {type(param)}")
@@ -34,7 +36,7 @@ class Robot:
 
     def draw(self, ax: Axes3D):
         for i in range(self._param.get_num_links() - 1):
-            draw_cylinder(
+            _render.draw_cylinder3d_by_trans(
                 radius=1.5,
                 height=3.0,
                 num_slices=20,
@@ -45,7 +47,9 @@ class Robot:
             self.draw_link(ax, self.get_joint_pos(i), self.get_joint_pos(i + 1))
 
         self.draw_link(ax, self._origin, self.get_joint_pos(0))
-        draw_cylinder(radius=3, height=2.0, num_slices=20, color="green", ax=ax)
+        _render.draw_cylinder3d_by_trans(
+            radius=3, height=2.0, num_slices=20, color="green", ax=ax
+        )
 
     def draw_link(self, ax: Axes3D, pos1, pos2):
         length = np.linalg.norm(pos2 - pos1)
@@ -90,7 +94,7 @@ class Robot:
             ]
         )
 
-        draw_cylinder(
+        _render.draw_cylinder3d_by_trans(
             radius=1,
             height=float(length),
             num_slices=20,

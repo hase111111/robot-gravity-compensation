@@ -33,8 +33,8 @@ def draw_cylinder3d(
     num_slices += 1  # 端点を含めるため+1
 
     # θとzの値を生成
-    theta = np.linspace(0, 2 * np.pi, num_slices)
-    z = np.linspace(0, height, num_stacks)
+    theta = np.linspace(0.0, 2.0 * np.pi, num_slices)
+    z = np.linspace(0.0, height, num_stacks)
 
     # メッシュグリッドを作成
     theta, z = np.meshgrid(theta, z)
@@ -44,14 +44,14 @@ def draw_cylinder3d(
     y = radius * np.sin(theta)
 
     # 上面と下面の元の座標を計算
-    theta_cap = np.linspace(0, 2 * np.pi, num_slices)
+    theta_cap = np.linspace(0.0, 2.0 * np.pi, num_slices)
     x_cap = radius * np.cos(theta_cap)
     y_cap = radius * np.sin(theta_cap)
     z_top = np.full_like(theta_cap, height)  # 上面のz座標
     z_bottom = np.zeros_like(theta_cap)  # 下面のz座標
 
     # 平行移動して円柱の中心を原点に合わせる
-    center_translation = mymath.get_trans4x4(0, 0, -height / 2)
+    center_translation = mymath.get_trans4x4(0.0, 0.0, -height / 2.0)
 
     # 全体の変換行列を適用
     full_transform = mymath.make_trans_by_pos_rot(rot, pos) @ center_translation
@@ -100,3 +100,23 @@ def draw_cylinder3d(
     ax.plot_trisurf(
         x_cap_bottom, y_cap_bottom, z_bottom, color=color, alpha=1.0, edgecolor="none"
     )  # 下面
+
+
+def draw_cylinder3d_by_trans(
+    ax: Axes3D,
+    radius: float,
+    height: float,
+    trans: mymath.TransMatrix = mymath.make_identity_trans_matrix(),
+    num_slices: int = 20,
+    num_stacks: int = 2,
+    color: str = "blue",
+) -> None:
+    """
+    指定した変換行列で円柱を描画する関数
+    デフォルトではz軸方向に高さが伸びる円柱を描画する
+    """
+
+    pos = mymath.conv_trans2pos(trans)
+    rot = mymath.conv_trans2rot(trans)
+
+    draw_cylinder3d(ax, radius, height, pos, rot, num_slices, num_stacks, color)
