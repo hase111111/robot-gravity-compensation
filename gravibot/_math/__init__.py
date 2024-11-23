@@ -9,6 +9,7 @@
 
 from .converter import conv_trans2pos, conv_trans2rot, make_trans_by_pos_rot
 from .rot import get_rot3x3
+from .str import posvec_to_str, rotmat_to_str, transmat_to_str
 from .trans import get_rot4x4, get_trans4x4, zero_small_values4x4
 from .type import TransMatrix, RotationMatrix, PositionVector
 from .type import (
@@ -26,6 +27,9 @@ __all__ = [
     "get_trans4x4",
     "zero_small_values4x4",
     "get_rot3x3",
+    "posvec_to_str",
+    "rotmat_to_str",
+    "transmat_to_str",
     "TransMatrix",
     "RotationMatrix",
     "PositionVector",

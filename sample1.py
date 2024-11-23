@@ -6,9 +6,6 @@ from mpl_toolkits.mplot3d import Axes3D  # type: ignore
 from matplotlib.widgets import Slider
 import gravibot as gb
 
-plt.rcParams["font.family"] = "TakaoPGothic"
-plt.rcParams["font.size"] = 12
-
 
 def reset_graph(ax: Axes3D) -> None:
     ax.clear()
@@ -50,24 +47,18 @@ def draw_table(ax, robot: gb.Robot, end_effecter: gb.EndEffecter) -> None:
     # ロボットの手先の位置を取得
     pos = robot.get_joint_pos(2)
     coord = gb.conv_trans2rot(robot.get_joint_trans(2))
-    com_pos = [
-        end_effecter.com_pos[2],
-        end_effecter.com_pos[1],
-        end_effecter.com_pos[0],
-    ]
+    com_pos = gb.make_pos_vector(
+        end_effecter.com_pos[2], end_effecter.com_pos[1], end_effecter.com_pos[0]
+    )
     power = end_effecter.get_censor_power(coord)
     moment = np.cross(com_pos, power)
     data = {
-        "手先の位置 [m]": "x:{:.3f}, y:{:.3f}, z:{:.3f}".format(*pos),
-        "手先からグリッパの重心へ向かうベクトル [m]": "x:{:.3f}, y:{:.3f}, z:{:.3f}".format(
-            *com_pos
-        ),
-        "グリッパの質量 [kg]": "{:.3f}".format(end_effecter.mass),
-        "手先の姿勢(回転行列)": "{:.3f}, {:.3f}, {:.3f} \n {:.3f}, {:.3f}, {:.3f} \n {:.3f}, {:.3f}, {:.3f}".format(
-            *coord[0], *coord[1], *coord[2]
-        ),
-        "センサにかかる力 [N]": "x:{:.3f}, y:{:.3f}, z:{:.3f}".format(*power),
-        "センサにかかるモーメント [Nm]": "x:{:.3f}, y:{:.3f}, z:{:.3f}".format(*moment),
+        "End Effecter Position [m]": f"{gb.posvec_to_str(pos)}",
+        "End Effecter To Gripper COM [m]": f"{gb.posvec_to_str(com_pos)}",
+        "Gripper Mass [kg]": f"{end_effecter.mass:.3f}",
+        "End Effecter Rot": f"{gb.rotmat_to_str(coord)}",
+        "Force On Sensor [N]": f"{gb.posvec_to_str(power)}",
+        "Moment On Sensor [Nm]": f"{gb.posvec_to_str(moment)}",
     }
 
     # テーブルのデータ作成
@@ -96,7 +87,7 @@ def draw_table(ax, robot: gb.Robot, end_effecter: gb.EndEffecter) -> None:
 def main():
     param = make_robot_param()
     robot = gb.Robot(param)
-    endeffecter = gb.EndEffecter([3, 0, 0])
+    endeffecter = gb.EndEffecter([3.0, 0.0, 0.0])
 
     # 3Dグラフの初期化
     fig = plt.figure(figsize=(8, 6))
