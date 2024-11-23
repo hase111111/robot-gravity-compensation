@@ -11,6 +11,7 @@ import numpy as np
 
 from .._math.type import TransMatrix
 from .._math.trans import get_rot4x4, get_trans4x4, zero_small_values4x4
+from .._util.type_check import _float_check, _bool_check
 
 
 class LinkParam:
@@ -27,13 +28,13 @@ class LinkParam:
         min_val: float = -np.pi,
         max_val: float = np.pi,
     ):
-        self._a = a
-        self._alpha = alpha
-        self._d = d
-        self._theta = theta
-        self.is_rot_axis = is_rot_axis
-        self.min_val = min_val
-        self.max_val = max_val
+        self._a = _float_check(a)
+        self._alpha = _float_check(alpha)
+        self._d = _float_check(d)
+        self._theta = _float_check(theta)
+        self.is_rot_axis = _bool_check(is_rot_axis)
+        self.min_val = _float_check(min_val)
+        self.max_val = _float_check(max_val)
 
     def get_trans_mat(self) -> TransMatrix:
         """return link's A matrix"""

@@ -28,8 +28,8 @@ def reset_table(ax) -> None:
 
 def make_robot_param() -> gb.RobotParam:
     param = gb.RobotParam()
-    param.add_link(gb.LinkParam(a=0, alpha=np.pi / 2, d=10, theta=0))
-    param.add_link(gb.LinkParam(a=10, alpha=-np.pi / 2, d=0, theta=0))
+    param.add_link(gb.LinkParam(a=0, alpha=np.pi / 2.0, d=10.0, theta=0.0))
+    param.add_link(gb.LinkParam(a=10, alpha=-np.pi / 2.0, d=0.0, theta=0.0))
     param.add_link(gb.LinkParam(a=10, alpha=0, d=0, theta=0))
 
     return param
