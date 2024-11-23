@@ -11,6 +11,8 @@ from typing import TypeAlias
 import numpy as np
 from numpy.typing import NDArray
 
+from .._util.type_check import _type_checked
+
 
 TransMatrix: TypeAlias = NDArray[np.float64]
 RotationMatrix: TypeAlias = NDArray[np.float64]
@@ -63,6 +65,7 @@ def is_rot_matrix(matrix: NDArray) -> bool:
     bool
         True if the input matrix is a rotation matrix.
     """
+
     if matrix.shape == (3, 3):
         return True
     else:
@@ -81,13 +84,13 @@ def make_identity_rot_matrix() -> RotationMatrix:
     return np.eye(3)
 
 
-def is_pos_vector(vector: NDArray) -> bool:
+def is_pos_vector(vector: PositionVector) -> bool:
     """
     Check if the input vector is a position vector(1 x 3).
 
     Parameters
     ----------
-    vector : NDArray
+    vector : PositionVector
         Input vector.
 
     Returns
@@ -95,6 +98,7 @@ def is_pos_vector(vector: NDArray) -> bool:
     bool
         True if the input vector is a position vector (1 x 3).
     """
+
     if vector.shape == (3,):
         return True
     else:
@@ -119,6 +123,10 @@ def make_pos_vector(x: float, y: float, z: float) -> PositionVector:
     PositionVector
         Position vector.
     """
+    x = _type_checked(x, float)
+    y = _type_checked(y, float)
+    z = _type_checked(z, float)
+
     return np.array([x, y, z])
 
 

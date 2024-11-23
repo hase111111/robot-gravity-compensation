@@ -101,12 +101,12 @@ class EndEffecter:
         pin_length = length / 5
         trans1 = (
             trans
-            @ get_trans4x4(0.45, 0, (length + pin_length) / 2)
+            @ get_trans4x4(0.45, 0.0, (length + pin_length) / 2.0)
             @ get_rot4x4("z", np.pi / 4)
         )
         trans2 = (
             trans
-            @ get_trans4x4(-0.45, 0, (length + pin_length) / 2)
+            @ get_trans4x4(-0.45, 0.0, (length + pin_length) / 2.0)
             @ get_rot4x4("z", np.pi / 4)
         )
 

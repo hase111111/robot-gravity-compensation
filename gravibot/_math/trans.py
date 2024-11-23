@@ -11,6 +11,7 @@ import numpy as np
 
 from .axis import _axis_name_check
 from .type import TransMatrix, is_trans_matrix
+from .._util.type_check import _type_checked
 
 
 def get_rot4x4(axis: str, theta: float) -> TransMatrix:
@@ -30,7 +31,7 @@ def get_rot4x4(axis: str, theta: float) -> TransMatrix:
     rot_mat : TransMatrix
         4x4の同時変換行列．
     """
-    a: str = _axis_name_check(axis)
+    a = _axis_name_check(axis)
 
     # 回転行列（同時変換行列）の生成
     if a == "x":
@@ -82,6 +83,10 @@ def get_trans4x4(x: float, y: float, z: float) -> TransMatrix:
     trans_mat : TransMatrix
         4x4の同時変換行列．
     """
+
+    x = _type_checked(x, float)  # x座標
+    y = _type_checked(y, float)  # y座標
+    z = _type_checked(z, float)  # z座標
 
     # 移動行列
     return np.array(
