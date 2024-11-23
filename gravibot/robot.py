@@ -1,3 +1,5 @@
+"""Robot class for gravibot"""
+
 from mpl_toolkits.mplot3d import Axes3D  # type: ignore
 import numpy as np
 
@@ -38,6 +40,7 @@ class Robot:
         return _math.conv_trans2pos(self.get_joint_trans(i))
 
     def draw(self, ax: Axes3D):
+        """draw the robot"""
         for i in range(self._param.get_num_links() - 1):
             _renderer.draw_cylinder3d_by_trans(
                 ax,
@@ -46,26 +49,26 @@ class Robot:
                 self.get_joint_trans(i),
                 color="blue",
             )
-            self.draw_link(ax, self.get_joint_pos(i), self.get_joint_pos(i + 1))
+            self._draw_link(ax, self.get_joint_pos(i), self.get_joint_pos(i + 1))
 
-        self.draw_link(ax, self._origin, self.get_joint_pos(0))
-        _renderer.draw_cylinder3d_by_trans(
-            radius=3, height=2.0, num_slices=20, color="green", ax=ax
-        )
+        self._draw_link(ax, self._origin, self.get_joint_pos(0))
+        _renderer.draw_cylinder3d_by_trans(ax, 3, 2.0, color="green")
 
-    def draw_link(self, ax: Axes3D, pos1, pos2):
-        length = np.linalg.norm(pos2 - pos1)
-        pos1to2 = pos2 - pos1
-        pos_center = pos1 + pos1to2 / 2
+    def _draw_link(
+        self, ax: Axes3D, pos1: _math.PositionVector, pos2: _math.PositionVector
+    ) -> None:
+        """draw a link between pos1 and pos2"""
 
+        length = float(np.linalg.norm(pos2 - pos1))
         if length < 1e-10:
             return
 
-        pos1to2 /= np.linalg.norm(pos1to2)
-        z_base = np.array([0, 0, 1])
+        pos1to2: _math.PositionVector = (pos2 - pos1) / length
+        pos_center: _math.PositionVector = pos1 + (pos2 - pos1) / 2
+        z_base = _math.make_pos_vector(0.0, 0.0, 1.0)
 
         if np.allclose(pos1to2, z_base):
-            rotation_matrix = np.eye(3)
+            rotation_matrix = _math.make_identity_rot_matrix()
         else:
             x_new = np.cross(z_base, pos1to2)
             x_new /= np.linalg.norm(x_new)
@@ -73,13 +76,12 @@ class Robot:
             rotation_matrix = np.array([x_new, y_new, pos1to2]).T
 
         _renderer.draw_cylinder3d(
-            radius=1,
-            height=float(length),
-            rot=rotation_matrix,
-            pos=pos_center,
-            num_slices=20,
+            ax,
+            1.0,
+            length,
+            pos_center,
+            rotation_matrix,
             color="red",
-            ax=ax,
         )
 
     def _validate_joint_num(self, idx) -> None:
