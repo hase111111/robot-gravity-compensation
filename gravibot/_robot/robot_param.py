@@ -10,7 +10,7 @@
 from typing import List, Optional
 
 from .link_param import LinkParam
-from .._util.type_check import _init_check, _float_check
+from .._util.type_check import _type_checked
 
 
 class RobotParam:
@@ -37,8 +37,8 @@ class RobotParam:
     def set_val(self, idx: int, theta: float) -> None:
         """set the i-th link's theta value"""
 
-        idx = _init_check(idx)
-        theta = _float_check(theta)
+        idx = _type_checked(idx, int)
+        theta = _type_checked(theta, float)
 
         self._link[idx].set_val(theta)
 
@@ -46,7 +46,7 @@ class RobotParam:
         """get the i-th link.
         note that the index starts from 0"""
 
-        idx = _init_check(idx)
+        idx = _type_checked(idx, int)
 
         if idx < 0 or idx >= len(self._link):
             raise IndexError("index out of range")

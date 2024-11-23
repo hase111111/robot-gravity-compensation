@@ -11,7 +11,7 @@ import numpy as np
 
 from .._math.type import TransMatrix
 from .._math.trans import get_rot4x4, get_trans4x4, zero_small_values4x4
-from .._util.type_check import _float_check, _bool_check
+from .._util.type_check import _type_checked
 
 
 class LinkParam:
@@ -28,13 +28,13 @@ class LinkParam:
         min_val: float = -np.pi,
         max_val: float = np.pi,
     ):
-        self._a = _float_check(a)
-        self._alpha = _float_check(alpha)
-        self._d = _float_check(d)
-        self._theta = _float_check(theta)
-        self.is_rot_axis = _bool_check(is_rot_axis)
-        self.min_val = _float_check(min_val)
-        self.max_val = _float_check(max_val)
+        self._a = _type_checked(a, float)
+        self._alpha = _type_checked(alpha, float)
+        self._d = _type_checked(d, float)
+        self._theta = _type_checked(theta, float)
+        self.is_rot_axis = _type_checked(is_rot_axis, bool)
+        self.min_val = _type_checked(min_val, float)
+        self.max_val = _type_checked(max_val, float)
 
     def get_trans_mat(self) -> TransMatrix:
         """return link's A matrix"""
@@ -48,6 +48,9 @@ class LinkParam:
 
     def set_val(self, val: float) -> None:
         """set d and theta"""
+
+        val = _type_checked(val, float)
+
         if not self.min_val <= val <= self.max_val:
             raise ValueError(
                 f"theta should be in range [{self.min_val}, {self.max_val}]"
