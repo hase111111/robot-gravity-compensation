@@ -1,10 +1,7 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-from matplotlib.widgets import Slider
+
 import gravibot._renderer as _renderer
-from ._math import *
-from .robot import Robot
+import gravibot._math as _math
 
 
 class EndEffecter:
@@ -15,13 +12,13 @@ class EndEffecter:
         self.AXIS_LENGTH = 20
 
     def draw(self, ax, trans):
-        self.origin = conv_trans2pos(trans)
+        self.origin = _math.conv_trans2pos(trans)
         pos1 = self.origin
         pos2 = [self.com_pos[0] * 2, self.com_pos[1] * 2, self.com_pos[2] * 2]
-        pos2 = conv_trans2rot(trans) @ pos2 + pos1
+        pos2 = _math.conv_trans2rot(trans) @ pos2 + pos1
 
         self.draw_censor_power(trans, ax)
-        tmp = (conv_trans2rot(trans) @ [0, 0, 1]) * self.AXIS_LENGTH
+        tmp = (_math.conv_trans2rot(trans) @ [0, 0, 1]) * self.AXIS_LENGTH
         ax.quiver(
             self.origin[0],
             self.origin[1],
@@ -31,7 +28,7 @@ class EndEffecter:
             tmp[2],
             color="red",
         )
-        tmp = (conv_trans2rot(trans) @ [0, 1, 0]) * self.AXIS_LENGTH
+        tmp = (_math.conv_trans2rot(trans) @ [0, 1, 0]) * self.AXIS_LENGTH
         ax.quiver(
             self.origin[0],
             self.origin[1],
@@ -41,7 +38,7 @@ class EndEffecter:
             tmp[2],
             color="blue",
         )
-        tmp = (conv_trans2rot(trans) @ [1, 0, 0]) * self.AXIS_LENGTH
+        tmp = (_math.conv_trans2rot(trans) @ [1, 0, 0]) * self.AXIS_LENGTH
         ax.quiver(
             self.origin[0],
             self.origin[1],
@@ -101,13 +98,13 @@ class EndEffecter:
         pin_length = length / 5
         trans1 = (
             trans
-            @ get_trans4x4(0.45, 0.0, (length + pin_length) / 2.0)
-            @ get_rot4x4("z", np.pi / 4)
+            @ _math.get_trans4x4(0.45, 0.0, (length + pin_length) / 2.0)
+            @ _math.get_rot4x4("z", np.pi / 4)
         )
         trans2 = (
             trans
-            @ get_trans4x4(-0.45, 0.0, (length + pin_length) / 2.0)
-            @ get_rot4x4("z", np.pi / 4)
+            @ _math.get_trans4x4(-0.45, 0.0, (length + pin_length) / 2.0)
+            @ _math.get_rot4x4("z", np.pi / 4)
         )
 
         _renderer.draw_cylinder3d_by_trans(
@@ -146,7 +143,7 @@ class EndEffecter:
         return np.array([ans[2], ans[1], ans[0]])
 
     def draw_censor_power(self, trans, ax):
-        rot = conv_trans2rot(trans)
+        rot = _math.conv_trans2rot(trans)
         power = self.get_censor_power(rot)
         pos = self.origin + self.com_pos @ rot.T
         # 力の矢印を描画
@@ -156,56 +153,3 @@ class EndEffecter:
         ax.quiver(pos[0], pos[1], pos[2], tmp[0], tmp[1], tmp[2], color="cyan")
         tmp = np.array([power[2], 0, 0]) @ rot.T
         ax.quiver(pos[0], pos[1], pos[2], tmp[0], tmp[1], tmp[2], color="lime")
-
-
-def reset_graph(ax: Axes3D) -> None:
-    ax.clear()
-    ax.set_xlim(-25, 25)
-    ax.set_xlabel("X [m]")
-    ax.set_ylim(-25, 25)
-    ax.set_ylabel("Y [m]")
-    ax.set_zlim(0, 50)
-    ax.set_zlabel("Z [m]")
-    ax.set_aspect("equal")
-
-
-def main():
-    param = RobotParam()
-    param.add_link(a=0, alpha=np.pi / 2, d=10, theta=0)
-    param.add_link(a=10, alpha=-np.pi / 2, d=0, theta=0)
-    param.add_link(a=10, alpha=0, d=0, theta=0)
-
-    robot = Robot(param)
-    endeffecter = EndEffecter([3, 0, 0])
-
-    fig = plt.figure(figsize=(8, 6))
-    ax = fig.add_subplot(1, 2, 1, projection="3d")
-    reset_graph(ax)
-    robot.draw(ax)
-
-    # スライダーの追加
-    sliders = []
-    slider_ax_start = 0.13
-    for i in range(len(param.link)):
-        ax_slider = plt.axes([0.2, slider_ax_start, 0.65, 0.03])
-        slider = Slider(ax_slider, f"Link {i+1} θ", -np.pi, np.pi, valinit=0.0)
-        sliders.append(slider)
-        slider_ax_start -= 0.025
-
-    def update(val):
-        reset_graph(ax)
-        for i, slider in enumerate(sliders):
-            param.set_val(i, slider.val)
-        robot.draw(ax)
-        endeffecter.origin = robot.get_joint_pos(2)
-        endeffecter.draw(ax, robot.get_joint_trans(2))
-        plt.draw()
-
-    for slider in sliders:
-        slider.on_changed(update)
-
-    plt.show()
-
-
-if __name__ == "__main__":
-    main()
