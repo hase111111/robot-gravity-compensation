@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.widgets import Slider
-import gravibot._render as _render
+import gravibot._renderer as _renderer
 from ._math import *
 from .robot import Robot
 
@@ -94,7 +94,7 @@ class EndEffecter:
             ]
         )
 
-        _render.draw_cylinder3d_by_trans(
+        _renderer.draw_cylinder3d_by_trans(
             radius=0.9, height=length, num_slices=20, color="gray", ax=ax, trans=trans
         )
 
@@ -110,7 +110,7 @@ class EndEffecter:
             @ get_rot4x4("z", np.pi / 4)
         )
 
-        _render.draw_cylinder3d_by_trans(
+        _renderer.draw_cylinder3d_by_trans(
             radius=0.3,
             height=pin_length,
             num_slices=4,
@@ -118,7 +118,7 @@ class EndEffecter:
             ax=ax,
             trans=trans1,
         )
-        _render.draw_cylinder3d_by_trans(
+        _renderer.draw_cylinder3d_by_trans(
             radius=0.3,
             height=pin_length,
             num_slices=4,

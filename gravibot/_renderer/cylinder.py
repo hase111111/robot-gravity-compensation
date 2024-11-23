@@ -9,15 +9,15 @@ import numpy as np
 from mpl_toolkits.mplot3d import Axes3D  # type: ignore
 
 
-import gravibot._math as mymath
+import gravibot._math as _math
 
 
 def draw_cylinder3d(
     ax: Axes3D,
     radius: float,
     height: float,
-    pos: mymath.PositionVector = mymath.make_zero_pos_vector(),
-    rot: mymath.RotationMatrix = mymath.make_identity_rot_matrix(),
+    pos: _math.PositionVector = _math.make_zero_pos_vector(),
+    rot: _math.RotationMatrix = _math.make_identity_rot_matrix(),
     num_slices: int = 20,
     num_stacks: int = 2,
     color: str = "blue",
@@ -51,10 +51,10 @@ def draw_cylinder3d(
     z_bottom = np.zeros_like(theta_cap)  # 下面のz座標
 
     # 平行移動して円柱の中心を原点に合わせる
-    center_translation = mymath.get_trans4x4(0.0, 0.0, -height / 2.0)
+    center_translation = _math.get_trans4x4(0.0, 0.0, -height / 2.0)
 
     # 全体の変換行列を適用
-    full_transform = mymath.make_trans_by_pos_rot(rot, pos) @ center_translation
+    full_transform = _math.make_trans_by_pos_rot(rot, pos) @ center_translation
 
     # 側面座標に変換を適用
     points_side = np.vstack((x.ravel(), y.ravel(), z.ravel(), np.ones_like(x.ravel())))
@@ -106,7 +106,7 @@ def draw_cylinder3d_by_trans(
     ax: Axes3D,
     radius: float,
     height: float,
-    trans: mymath.TransMatrix = mymath.make_identity_trans_matrix(),
+    trans: _math.TransMatrix = _math.make_identity_trans_matrix(),
     num_slices: int = 20,
     num_stacks: int = 2,
     color: str = "blue",
@@ -116,7 +116,7 @@ def draw_cylinder3d_by_trans(
     デフォルトではz軸方向に高さが伸びる円柱を描画する
     """
 
-    pos = mymath.conv_trans2pos(trans)
-    rot = mymath.conv_trans2rot(trans)
+    pos = _math.conv_trans2pos(trans)
+    rot = _math.conv_trans2rot(trans)
 
     draw_cylinder3d(ax, radius, height, pos, rot, num_slices, num_stacks, color)
