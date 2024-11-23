@@ -2,7 +2,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d import Axes3D  # type: ignore
 from matplotlib.widgets import Slider
 import gravibot as gb
 
@@ -35,7 +35,7 @@ def make_robot_param() -> gb.RobotParam:
     return param
 
 
-def add_slider(ax, slider_ax_start, num_links):
+def add_slider(slider_ax_start, num_links):
     sliders = []
     for i in range(num_links):
         ax_slider = plt.axes([0.2, slider_ax_start, 0.65, 0.03])
@@ -110,7 +110,7 @@ def main():
     draw_table(table, robot, endeffecter)
 
     # スライダーの追加
-    sliders = add_slider(ax, 0.13, param.get_num_links())
+    sliders = add_slider(0.13, param.get_num_links())
 
     # スライダーの更新時に呼び出す関数
     def update(_):
