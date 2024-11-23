@@ -1,13 +1,13 @@
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
+
+import gravibot._math as _math
+import gravibot._robot as _robot
 from .render import *
-from ._math import *
-from ._robot.link_param import *
-from ._robot.robot_param import *
 
 
 class Robot:
-    def __init__(self, param: RobotParam):
+    def __init__(self, param: _robot.RobotParam):
         self._param = param
         self._origin = np.zeros(3)
 
@@ -18,7 +18,7 @@ class Robot:
         return trans
 
     def get_joint_pos(self, i):
-        return conv_trans2pos(self.get_joint_trans(i))
+        return _math.conv_trans2pos(self.get_joint_trans(i))
 
     def draw(self, ax: Axes3D):
         for i in range(self._param.get_num_links() - 1):

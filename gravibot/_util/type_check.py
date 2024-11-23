@@ -19,3 +19,10 @@ def _bool_check(val) -> bool:
     if not isinstance(val, bool):
         raise TypeError(f"{val} is not bool")
     return val
+
+
+def _init_check(val) -> int:
+    """check if val is int"""
+    if not isinstance(val, int):
+        raise TypeError(f"{val} is not int")
+    return val
