@@ -76,7 +76,7 @@ def draw_table(ax, robot: gb.Robot, end_effecter: gb.EndEffecter) -> None:
     ax.axis("off")
     ax.axis("tight")
     table.auto_set_font_size(False)
-    table.set_fontsize(15)
+    table.set_fontsize(10)
     table.scale(1, 1.5)
 
     row_to_expand = 4  # 縦幅を大きくする行のインデックス（データ行の場合0から始まる）
@@ -85,6 +85,7 @@ def draw_table(ax, robot: gb.Robot, end_effecter: gb.EndEffecter) -> None:
 
 
 def main():
+    """Main function to visualize a robot and its end effecter with sliders."""
     param = make_robot_param()
     robot = gb.Robot(param)
     endeffecter = gb.EndEffecter([3.0, 0.0, 0.0])
