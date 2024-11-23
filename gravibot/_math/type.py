@@ -37,6 +37,18 @@ def is_trans_matrix(matrix: NDArray) -> bool:
         return False
 
 
+def make_identity_trans_matrix() -> TransMatrix:
+    """
+    Make an identity transformation matrix.
+
+    Returns
+    -------
+    TransMatrix
+        Identity transformation matrix.
+    """
+    return np.eye(4)
+
+
 def is_rot_matrix(matrix: NDArray) -> bool:
     """
     Check if the input matrix is a rotation matrix.
@@ -55,6 +67,18 @@ def is_rot_matrix(matrix: NDArray) -> bool:
         return True
     else:
         return False
+
+
+def make_identity_rot_matrix() -> RotationMatrix:
+    """
+    Make an identity rotation matrix.
+
+    Returns
+    -------
+    RotationMatrix
+        Identity rotation matrix.
+    """
+    return np.eye(3)
 
 
 def is_pos_vector(vector: NDArray) -> bool:
@@ -96,3 +120,15 @@ def make_pos_vector(x: float, y: float, z: float) -> PositionVector:
         Position vector.
     """
     return np.array([x, y, z])
+
+
+def make_zero_pos_vector() -> PositionVector:
+    """
+    Make a zero position vector.
+
+    Returns
+    -------
+    PositionVector
+        Zero position vector.
+    """
+    return np.zeros(3)

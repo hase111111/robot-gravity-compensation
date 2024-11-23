@@ -8,16 +8,28 @@ from .render import *
 
 class Robot:
     def __init__(self, param: _robot.RobotParam):
-        self._param = param
-        self._origin = np.zeros(3)
+        if not isinstance(param, _robot.RobotParam):
+            raise TypeError(f"param must be RobotParam, not {type(param)}")
 
-    def get_joint_trans(self, i):
-        trans = np.eye(4)
+        self._param = param
+        self._origin = _math.make_zero_pos_vector()
+
+    def get_joint_trans(self, i: int) -> _math.TransMatrix:
+        """get the transformation matrix of the i-th joint"""
+
+        self._validate_joint_num(i)
+
+        ans = _math.make_identity_trans_matrix()
         for j in range(i + 1):
-            trans = trans @ self._param.get_link(j).get_trans_mat()
-        return trans
+            ans = ans @ self._param.get_link(j).get_trans_mat()
+
+        return ans
 
     def get_joint_pos(self, i):
+        """get the position of the i-th joint"""
+
+        self._validate_joint_num(i)
+
         return _math.conv_trans2pos(self.get_joint_trans(i))
 
     def draw(self, ax: Axes3D):
@@ -86,3 +98,11 @@ class Robot:
             ax=ax,
             trans=trans,
         )
+
+    def _validate_joint_num(self, idx) -> None:
+        if not isinstance(idx, int):
+            raise TypeError(f"i must be an integer, not {type(idx)}")
+
+        max_idx = self._param.get_num_links() - 1
+        if not 0 <= idx <= max_idx:
+            raise ValueError(f"i must be in range [0, num_links{max_idx}]")
