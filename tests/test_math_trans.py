@@ -26,22 +26,22 @@ class TestMathTrans(unittest.TestCase):
     def test_get_rot4x4_identity(self):
         """when 0 radian is given,
         should return identity matrix"""
-        self.assertTrue((get_rot4x4("x", 0) == np.eye(4)).all())
-        self.assertTrue((get_rot4x4("y", 0) == np.eye(4)).all())
-        self.assertTrue((get_rot4x4("z", 0) == np.eye(4)).all())
+        self.assertTrue((get_rot4x4("x", 0.0) == np.eye(4)).all())
+        self.assertTrue((get_rot4x4("y", 0.0) == np.eye(4)).all())
+        self.assertTrue((get_rot4x4("z", 0.0) == np.eye(4)).all())
 
     def test_get_rot4x4_xaxis(self):
         """when pi/4 radian is given,
         should return rotation matrix around x axis"""
         self.assertTrue(
             (
-                get_rot4x4("x", np.pi / 4)
+                get_rot4x4("x", np.pi / 4.0)
                 == np.array(
                     [
-                        [1, 0, 0, 0],
-                        [0, np.cos(np.pi / 4), -np.sin(np.pi / 4), 0],
-                        [0, np.sin(np.pi / 4), np.cos(np.pi / 4), 0],
-                        [0, 0, 0, 1],
+                        [1, 0.0, 0.0, 0.0],
+                        [0.0, np.cos(np.pi / 4.0), -np.sin(np.pi / 4.0), 0.0],
+                        [0.0, np.sin(np.pi / 4.0), np.cos(np.pi / 4.0), 0.0],
+                        [0.0, 0.0, 0.0, 1.0],
                     ]
                 )
             ).all()
@@ -52,13 +52,13 @@ class TestMathTrans(unittest.TestCase):
         should return rotation matrix around y axis"""
         self.assertTrue(
             (
-                get_rot4x4("y", np.pi / 4)
+                get_rot4x4("y", np.pi / 4.0)
                 == np.array(
                     [
-                        [np.cos(np.pi / 4), 0, np.sin(np.pi / 4), 0],
-                        [0, 1, 0, 0],
-                        [-np.sin(np.pi / 4), 0, np.cos(np.pi / 4), 0],
-                        [0, 0, 0, 1],
+                        [np.cos(np.pi / 4.0), 0.0, np.sin(np.pi / 4.0), 0.0],
+                        [0.0, 1.0, 0.0, 0.0],
+                        [-np.sin(np.pi / 4.0), 0.0, np.cos(np.pi / 4.0), 0.0],
+                        [0.0, 0.0, 0.0, 1.0],
                     ]
                 )
             ).all()
@@ -69,13 +69,13 @@ class TestMathTrans(unittest.TestCase):
         should return rotation matrix around z axis"""
         self.assertTrue(
             (
-                get_rot4x4("z", np.pi / 4)
+                get_rot4x4("z", np.pi / 4.0)
                 == np.array(
                     [
-                        [np.cos(np.pi / 4), -np.sin(np.pi / 4), 0, 0],
-                        [np.sin(np.pi / 4), np.cos(np.pi / 4), 0, 0],
-                        [0, 0, 1, 0],
-                        [0, 0, 0, 1],
+                        [np.cos(np.pi / 4.0), -np.sin(np.pi / 4.0), 0.0, 0.0],
+                        [np.sin(np.pi / 4.0), np.cos(np.pi / 4.0), 0.0, 0.0],
+                        [0.0, 0.0, 1.0, 0.0],
+                        [0.0, 0.0, 0.0, 1.0],
                     ]
                 )
             ).all()
@@ -86,13 +86,13 @@ class TestMathTrans(unittest.TestCase):
         should return translation matrix"""
         self.assertTrue(
             (
-                get_trans4x4(2, 3, 4)
+                get_trans4x4(2.0, 3.0, 4.0)
                 == np.array(
                     [
-                        [1, 0, 0, 2],
-                        [0, 1, 0, 3],
-                        [0, 0, 1, 4],
-                        [0, 0, 0, 1],
+                        [1.0, 0.0, 0.0, 2.0],
+                        [0.0, 1.0, 0.0, 3.0],
+                        [0.0, 0.0, 1.0, 4.0],
+                        [0.0, 0.0, 0.0, 1.0],
                     ]
                 )
             ).all()
@@ -116,10 +116,10 @@ class TestMathTrans(unittest.TestCase):
                 )
                 == np.array(
                     [
-                        [0, 0, 0, 0],
-                        [0, 0, 0, 0],
-                        [0, 0, 0, 0],
-                        [0, 0, 0, 0],
+                        [0.0, 0.0, 0.0, 0.0],
+                        [0.0, 0.0, 0.0, 0.0],
+                        [0.0, 0.0, 0.0, 0.0],
+                        [0.0, 0.0, 0.0, 0.0],
                     ]
                 )
             ).all()

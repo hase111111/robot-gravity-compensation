@@ -11,6 +11,7 @@ import numpy as np
 
 from .axis import _axis_name_check
 from .type import RotationMatrix, is_rot_matrix
+from .._util.type_check import _type_checked
 
 
 def get_rot3x3(axis: str, theta: float) -> RotationMatrix:
@@ -31,6 +32,7 @@ def get_rot3x3(axis: str, theta: float) -> RotationMatrix:
         3x3の回転行列．
     """
     a = _axis_name_check(axis)
+    theta = _type_checked(theta, float)
 
     # 回転行列の生成
     if a == "x":

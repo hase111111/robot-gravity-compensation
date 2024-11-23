@@ -26,9 +26,9 @@ class TestMathRot(unittest.TestCase):
     def test_get_rot3x3_identity(self):
         """when 0 radian is given,
         should return identity matrix"""
-        self.assertTrue((get_rot3x3("x", 0) == np.eye(3)).all())
-        self.assertTrue((get_rot3x3("y", 0) == np.eye(3)).all())
-        self.assertTrue((get_rot3x3("z", 0) == np.eye(3)).all())
+        self.assertTrue((get_rot3x3("x", 0.0) == np.eye(3)).all())
+        self.assertTrue((get_rot3x3("y", 0.0) == np.eye(3)).all())
+        self.assertTrue((get_rot3x3("z", 0.0) == np.eye(3)).all())
 
     def test_get_rot3x3_xaxis(self):
         """when pi/4 radian is given,
@@ -38,9 +38,9 @@ class TestMathRot(unittest.TestCase):
                 get_rot3x3("x", np.pi / 4)
                 == np.array(
                     [
-                        [1, 0, 0],
-                        [0, np.cos(np.pi / 4), -np.sin(np.pi / 4)],
-                        [0, np.sin(np.pi / 4), np.cos(np.pi / 4)],
+                        [1.0, 0.0, 0.0],
+                        [0.0, np.cos(np.pi / 4.0), -np.sin(np.pi / 4.0)],
+                        [0.0, np.sin(np.pi / 4.0), np.cos(np.pi / 4.0)],
                     ]
                 )
             ).all()
@@ -51,12 +51,12 @@ class TestMathRot(unittest.TestCase):
         should return rotation matrix around y axis"""
         self.assertTrue(
             (
-                get_rot3x3("y", np.pi / 4)
+                get_rot3x3("y", np.pi / 4.0)
                 == np.array(
                     [
-                        [np.cos(np.pi / 4), 0, np.sin(np.pi / 4)],
-                        [0, 1, 0],
-                        [-np.sin(np.pi / 4), 0, np.cos(np.pi / 4)],
+                        [np.cos(np.pi / 4.0), 0.0, np.sin(np.pi / 4.0)],
+                        [0.0, 1.0, 0.0],
+                        [-np.sin(np.pi / 4.0), 0.0, np.cos(np.pi / 4.0)],
                     ]
                 )
             ).all()
@@ -67,12 +67,12 @@ class TestMathRot(unittest.TestCase):
         should return rotation matrix around z axis"""
         self.assertTrue(
             (
-                get_rot3x3("z", np.pi / 4)
+                get_rot3x3("z", np.pi / 4.0)
                 == np.array(
                     [
-                        [np.cos(np.pi / 4), -np.sin(np.pi / 4), 0],
-                        [np.sin(np.pi / 4), np.cos(np.pi / 4), 0],
-                        [0, 0, 1],
+                        [np.cos(np.pi / 4.0), -np.sin(np.pi / 4.0), 0.0],
+                        [np.sin(np.pi / 4.0), np.cos(np.pi / 4.0), 0.0],
+                        [0.0, 0.0, 1.0],
                     ]
                 )
             ).all()

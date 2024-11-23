@@ -32,6 +32,7 @@ def get_rot4x4(axis: str, theta: float) -> TransMatrix:
         4x4の同時変換行列．
     """
     a = _axis_name_check(axis)
+    theta = _type_checked(theta, float)
 
     # 回転行列（同時変換行列）の生成
     if a == "x":
