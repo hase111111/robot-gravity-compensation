@@ -1,3 +1,5 @@
+"""provide type check functions"""
+
 # -*- coding: utf-8 -*-
 
 # Copyright (c) 2024 Taisei Hasegawa
