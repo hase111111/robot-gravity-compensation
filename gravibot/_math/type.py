@@ -6,7 +6,10 @@
 # Released under the MIT license
 # https://opensource.org/licenses/mit-license.php
 
-from typing import TypeAlias
+try:
+    from typing import TypeAlias
+except ImportError:
+    from typing_extensions import TypeAlias
 
 import numpy as np
 from numpy.typing import NDArray
