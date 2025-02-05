@@ -5,18 +5,26 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # type: ignore
-from typing import List
 
-import casadi as cs
+import casadi as cs  # type: ignore
+
 import gravibot as gb
 
 
 def make_robot_param() -> gb.RobotParam:
     """ロボットのパラメータを作成"""
+    m = -np.pi * 2
+    M = np.pi * 2
     ret = gb.RobotParam()
-    ret.add_link(gb.LinkParam(a=0.0, alpha=np.pi / 2.0, d=10.0, theta=0.0))
-    ret.add_link(gb.LinkParam(a=10.0, alpha=-np.pi / 2.0, d=0.0, theta=0.0))
-    ret.add_link(gb.LinkParam(a=10.0, alpha=0.0, d=0.0, theta=0.0))
+    ret.add_link(
+        gb.LinkParam(a=0.0, alpha=np.pi / 2.0, d=10.0, theta=0.0, min_val=m, max_val=M)
+    )
+    ret.add_link(
+        gb.LinkParam(a=10.0, alpha=-np.pi / 2.0, d=0.0, theta=0.0, min_val=m, max_val=M)
+    )
+    ret.add_link(
+        gb.LinkParam(a=10.0, alpha=0.0, d=0.0, theta=0.0, min_val=m, max_val=M)
+    )
 
     return ret
 
@@ -45,7 +53,7 @@ for i_, t in enumerate(INITIAL_THETA):
     param.set_val(i_, t)
 
 # 目標の関節角度
-TARGET_THETA = [np.pi, 0.0, -np.pi / 3.0]  # 変更可能
+TARGET_THETA = [np.pi * 101 / 100, np.pi / 3.0, 0.0]  # 変更可能
 TARGET_DTHETA = [0.0] * LINK_NUM
 TARGET_DDTHETA = [0.0] * LINK_NUM
 if LINK_NUM != len(TARGET_THETA):
@@ -56,8 +64,8 @@ for i_, t in enumerate(TARGET_THETA):
 
 # 障害物の位置
 OBSTACLE_NUM = 1
-OBSTACLE_POS = [gb.make_pos_vector(0.0, 15.0, 10.0)]
-OBSTACLE_RADIUS = [8.0]
+OBSTACLE_POS = [gb.make_pos_vector(0.0, 17.0, 15.0)]
+OBSTACLE_RADIUS = [10.0]
 if OBSTACLE_NUM != len(OBSTACLE_POS) or OBSTACLE_NUM != len(OBSTACLE_RADIUS):
     raise ValueError("OBSTACLE_NUM must be equal to len(OBSTACLE_POS)")
 
@@ -134,12 +142,14 @@ def constraints_obstacle(
                 robot_param_.set_val(k, theta[k * TIME_NUM + j])
             pos = robot_.get_joint_pos(LINK_NUM - 1)
             diff = pos - OBSTACLE_POS[i]
-            dist = cs.norm_2(diff)
+            # print(f"diff = {diff.shape}")
+            dist = diff[0] ** 2 + diff[1] ** 2 + diff[2] ** 2  # 距離の二乗
+            dist = cs.sqrt(dist)
 
             # 障害物の中に入っている場合値を大きくし，外に出ている場合は0
             # ret.append(max(0, dist - OBSTACLE_RADIUS[i]))
-            # ret = cs.vertcat(ret, cs.fmax(0, dist - OBSTACLE_RADIUS[i]))
-            ret = cs.vertcat(ret, 0)
+            ret = cs.vertcat(ret, cs.fmax(0, OBSTACLE_RADIUS[i] - dist))
+            # ret = cs.vertcat(ret, 0)
 
     return ret
 
@@ -221,6 +231,10 @@ def main():
         constraints_obstacle(theta_mx, param_casadi, robot_casadi),
     )
 
+    print(
+        f"constraints.shape = {constraints.shape}, is_dense = {constraints.is_dense()}"
+    )
+
     # 最適化問題を定義
     nlp = {
         "x": theta_mx,
@@ -232,12 +246,13 @@ def main():
     solver = cs.nlpsol("solver", "ipopt", nlp)
 
     # 初期値
-    theta_init = np.zeros((LINK_NUM * TIME_NUM))
+    # theta_init = np.zeros((LINK_NUM * TIME_NUM))
+    theta_init = [np.random.uniform(-np.pi, np.pi)] * (LINK_NUM * TIME_NUM)
 
     opt_result = solver(
         x0=theta_init,
-        lbx=-np.pi,
-        ubx=np.pi,
+        lbx=-np.pi * 3,
+        ubx=np.pi * 3,
         lbg=0.0,
         ubg=0.0,
     )
@@ -259,9 +274,9 @@ def main():
     ax.set_aspect("equal")
 
     # ロボットを描画
-    for i in range(int(TIME_NUM / 5)):
+    for i in range(int(TIME_NUM / 2)):
         for j in range(LINK_NUM):
-            param.set_val(j, theta_opt[j][i * 5])
+            param.set_val(j, theta_opt[j][i * 2])
         robot.draw(ax)
 
     # 障害物を描画
@@ -269,7 +284,64 @@ def main():
 
     plt.show()
 
-    draw_time_graph(theta_opt, np.arange(0, END_TIME, TIME_STEP))
+    draw_time_graph(theta_opt * 180 / np.pi, np.arange(0, END_TIME, TIME_STEP))
+
+    # ロボットのアニメーションを描画
+    fig = plt.figure()
+    ax: Axes3D = fig.add_subplot(111, projection="3d")
+
+    for i in range(TIME_NUM):
+        ax.clear()
+
+        ax.set_xlim(-25, 25)
+        ax.set_xlabel("X [m]")
+        ax.set_ylim(-25, 25)
+        ax.set_ylabel("Y [m]")
+        ax.set_zlim(0, 50)
+        ax.set_zlabel("Z [m]")
+        ax.set_aspect("equal")
+
+        for j in range(LINK_NUM):
+            param.set_val(j, theta_opt[j][i])
+
+        draw_obstacle(ax)
+        robot.draw(ax)
+        plt.pause(0.1)
+
+    plt.show()
+
+    # 関節空間の軌跡を描画，縦軸がangle1,横軸がangle2,高さがangle3
+    fig = plt.figure()
+    ax: Axes3D = fig.add_subplot(111, projection="3d")
+
+    for i in range(TIME_NUM):
+        ax.scatter(theta_opt[0][i], theta_opt[1][i], theta_opt[2][i])
+
+    # 全域に対して，障害物と接触する点に赤い点を描画
+    DIV = 15
+    for i in range(DIV):
+        for j in range(DIV):
+            for k in range(DIV):
+                theta = [
+                    -np.pi + np.pi * 2 * i / DIV,
+                    -np.pi + np.pi * 2 * j / DIV,
+                    -np.pi + np.pi * 2 * k / DIV,
+                ]
+                for l in range(LINK_NUM):
+                    param.set_val(l, theta[l])
+                pos = robot.get_joint_pos(LINK_NUM - 1)
+                for m in range(OBSTACLE_NUM):
+                    diff = pos - OBSTACLE_POS[m]
+                    dist = np.sqrt(diff[0] ** 2 + diff[1] ** 2 + diff[2] ** 2)
+                    if dist < OBSTACLE_RADIUS[m]:
+                        ax.scatter(theta[0], theta[1], theta[2], color="red", s=30)
+
+    ax.set_xlabel("angle1 [rad]")
+    ax.set_ylabel("angle2 [rad]")
+    ax.set_zlabel("angle3 [rad]")
+    ax.set_title("Joint Space")
+
+    plt.show()
 
 
 if __name__ == "__main__":
