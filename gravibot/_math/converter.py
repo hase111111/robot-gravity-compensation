@@ -9,6 +9,8 @@
 
 import numpy as np
 
+import casadi as cs  # type: ignore
+
 from .type import TransMatrix, RotationMatrix, PositionVector
 from .type import is_pos_vector, is_rot_matrix, is_trans_matrix
 
@@ -33,6 +35,24 @@ def conv_trans2pos(trans: TransMatrix) -> PositionVector:
         raise ValueError("Input matrix must be 4x4.")
 
     return np.array([trans[0][3], trans[1][3], trans[2][3]]).transpose()
+
+
+def conv_trans2pos_casadi(trans: cs.MX) -> cs.MX:
+    """
+    同時変換行列から位置ベクトルを抽出する．
+
+    Parameters
+    ----------
+    trans : cs.MX
+        4x4の同時変換行列．
+
+    Returns
+    -------
+    pos : cs.MX
+        1x3の位置ベクトル．
+    """
+
+    return cs.vertcat(trans[0, 3], trans[1, 3], trans[2, 3])
 
 
 def conv_trans2rot(trans: TransMatrix) -> RotationMatrix:

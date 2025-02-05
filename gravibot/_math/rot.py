@@ -9,6 +9,8 @@
 
 import numpy as np
 
+import casadi as cs  # type: ignore
+
 from .axis import _axis_name_check
 from .type import RotationMatrix, is_rot_matrix
 from .._util.type_check import _type_checked
@@ -86,3 +88,45 @@ def zero_small_values4x4(trans: RotationMatrix) -> RotationMatrix:
     eps: float = 1e-10
     trans[np.abs(trans) <= eps] = 0.0  # 小さな値をゼロに置き換え
     return trans
+
+
+def get_rot_3x3_casadi(axis: str, theta):
+    """
+    指定された軸周りの回転行列を生成する関数．
+    回転行列は3x3の行列である
+
+    Parameters
+    ----------
+    axis : str
+        回転軸．'x', 'y', 'z'のいずれか．
+    theta : float
+        回転角．単位はラジアン．
+
+    Returns
+    -------
+    rot_mat : RotationMatrix
+        3x3の回転行列．
+    """
+    a = _axis_name_check(axis)
+
+    # 回転行列の生成
+    if a == "x":
+        rot_mat = cs.vertcat(
+            cs.horzcat(1, 0, 0),
+            cs.horzcat(0, cs.cos(theta), -cs.sin(theta)),
+            cs.horzcat(0, cs.sin(theta), cs.cos(theta)),
+        )
+    elif a == "y":
+        rot_mat = cs.vertcat(
+            cs.horzcat(cs.cos(theta), 0, cs.sin(theta)),
+            cs.horzcat(0, 1, 0),
+            cs.horzcat(-cs.sin(theta), 0, cs.cos(theta)),
+        )
+    else:
+        rot_mat = cs.vertcat(
+            cs.horzcat(cs.cos(theta), -cs.sin(theta), 0),
+            cs.horzcat(cs.sin(theta), cs.cos(theta), 0),
+            cs.horzcat(0, 0, 1),
+        )
+
+    return rot_mat

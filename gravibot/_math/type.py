@@ -9,10 +9,12 @@
 try:
     from typing import TypeAlias
 except ImportError:
-    from typing_extensions import TypeAlias
+    from typing_extensions import TypeAlias  # type: ignore
 
 import numpy as np
 from numpy.typing import NDArray
+
+import casadi as cs  # type: ignore
 
 from .._util.type_check import _type_checked
 
@@ -54,6 +56,18 @@ def make_identity_trans_matrix() -> TransMatrix:
     return np.eye(4)
 
 
+def make_identity_trans_matrix_casadi() -> cs.MX:
+    """
+    Make an identity transformation matrix.
+
+    Returns
+    -------
+    cs.MX
+        Identity transformation matrix.
+    """
+    return cs.MX.eye(4)
+
+
 def is_rot_matrix(matrix: NDArray) -> bool:
     """
     Check if the input matrix is a rotation matrix.
@@ -85,6 +99,18 @@ def make_identity_rot_matrix() -> RotationMatrix:
         Identity rotation matrix.
     """
     return np.eye(3)
+
+
+def make_identity_rot_matrix_casadi() -> cs.MX:
+    """
+    Make an identity rotation matrix.
+
+    Returns
+    -------
+    cs.MX
+        Identity rotation matrix.
+    """
+    return cs.MX.eye(3)
 
 
 def is_pos_vector(vector: PositionVector) -> bool:
@@ -143,3 +169,15 @@ def make_zero_pos_vector() -> PositionVector:
         Zero position vector.
     """
     return np.zeros(3)
+
+
+def make_zero_pos_vector_casadi() -> cs.MX:
+    """
+    Make a zero position vector.
+
+    Returns
+    -------
+    cs.MX
+        Zero position vector.
+    """
+    return cs.MX.zeros(3)

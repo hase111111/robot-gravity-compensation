@@ -31,7 +31,7 @@ class Robot:
 
         return ans
 
-    def get_joint_pos(self, i):
+    def get_joint_pos(self, i: int) -> _math.PositionVector:
         """get the position of the i-th joint"""
 
         i = _type_checked(i, int)
@@ -77,7 +77,7 @@ class Robot:
 
         _renderer.draw_cylinder3d(
             ax,
-            1.0,
+            0.5,
             length,
             pos_center,
             rotation_matrix,
