@@ -20,6 +20,9 @@ def make_robot_param() -> gb.RobotParam:
         gb.LinkParam(a=0.0, alpha=np.pi / 2.0, d=10.0, theta=0.0, min_val=m, max_val=M)
     )
     ret.add_link(
+        gb.LinkParam(a=10.0, alpha=0.0, d=0.0, theta=0.0, min_val=m, max_val=M)
+    )
+    ret.add_link(
         gb.LinkParam(a=10.0, alpha=-np.pi / 2.0, d=0.0, theta=0.0, min_val=m, max_val=M)
     )
     ret.add_link(
@@ -33,6 +36,7 @@ def make_robot_param_casadi() -> gb.RobotParamCasadi:
     """ロボットのパラメータを作成"""
     ret = gb.RobotParamCasadi()
     ret.add_link(gb.LinkParamCasadi(a=0.0, alpha=np.pi / 2.0, d=10.0, theta=0.0))
+    ret.add_link(gb.LinkParamCasadi(a=10.0, alpha=0.0, d=0.0, theta=0.0))
     ret.add_link(gb.LinkParamCasadi(a=10.0, alpha=-np.pi / 2.0, d=0.0, theta=0.0))
     ret.add_link(gb.LinkParamCasadi(a=10.0, alpha=0.0, d=0.0, theta=0.0))
 
@@ -46,14 +50,14 @@ robot_casadi = gb.RobotCasadi(param_casadi)
 LINK_NUM = param.get_num_links()
 
 # 初期の関節角度
-INITIAL_THETA = [0.0] * LINK_NUM
+INITIAL_THETA = [-cs.pi / 3.0, cs.pi / 5.0, -cs.pi / 5.0 * 2, 0.0]  # 変更可能
 INITIAL_DTHETA = [0.0] * LINK_NUM
 INITIAL_DDTHETA = [0.0] * LINK_NUM
 for i_, t in enumerate(INITIAL_THETA):
     param.set_val(i_, t)
 
 # 目標の関節角度
-TARGET_THETA = [np.pi * 101 / 100, np.pi / 3.0, 0.0]  # 変更可能
+TARGET_THETA = [cs.pi / 3.0, cs.pi / 5.0, -cs.pi / 5.0 * 2, 0.0]
 TARGET_DTHETA = [0.0] * LINK_NUM
 TARGET_DDTHETA = [0.0] * LINK_NUM
 if LINK_NUM != len(TARGET_THETA):
@@ -63,14 +67,14 @@ for i_, t in enumerate(TARGET_THETA):
 
 
 # 障害物の位置
-OBSTACLE_NUM = 1
-OBSTACLE_POS = [gb.make_pos_vector(0.0, 17.0, 15.0)]
-OBSTACLE_RADIUS = [10.0]
+OBSTACLE_NUM = 2
+OBSTACLE_POS = [gb.make_pos_vector(20.0, 0.0, 0.0), gb.make_pos_vector(20.0, 0.0, 20.0)]
+OBSTACLE_RADIUS = [10.0, 7.0]
 if OBSTACLE_NUM != len(OBSTACLE_POS) or OBSTACLE_NUM != len(OBSTACLE_RADIUS):
     raise ValueError("OBSTACLE_NUM must be equal to len(OBSTACLE_POS)")
 
 # 時間のリスト
-END_TIME = 5
+END_TIME = 5.0
 TIME_STEP = 0.1
 TIME_NUM = int(END_TIME / TIME_STEP)
 
@@ -134,22 +138,24 @@ def constraints_obstacle(
     theta: cs.MX, robot_param_: gb.RobotParamCasadi, robot_: gb.RobotCasadi
 ):
     """障害物による制約"""
+    DIFF = 0.5
 
     ret = cs.vertcat()
     for i in range(OBSTACLE_NUM):
         for j in range(TIME_NUM):
             for k in range(LINK_NUM):
                 robot_param_.set_val(k, theta[k * TIME_NUM + j])
-            pos = robot_.get_joint_pos(LINK_NUM - 1)
-            diff = pos - OBSTACLE_POS[i]
-            # print(f"diff = {diff.shape}")
-            dist = diff[0] ** 2 + diff[1] ** 2 + diff[2] ** 2  # 距離の二乗
-            dist = cs.sqrt(dist)
+
+            add = 0
+            for k in range(1, LINK_NUM):
+                pos = robot_.get_joint_pos(k)
+                diff = pos - OBSTACLE_POS[i]
+                dist = diff[0] ** 2 + diff[1] ** 2 + diff[2] ** 2  # 距離の二乗
+                dist = cs.sqrt(dist)
+                add = cs.fmax(add, (OBSTACLE_RADIUS[i] + DIFF) - dist)
 
             # 障害物の中に入っている場合値を大きくし，外に出ている場合は0
-            # ret.append(max(0, dist - OBSTACLE_RADIUS[i]))
-            ret = cs.vertcat(ret, cs.fmax(0, OBSTACLE_RADIUS[i] - dist))
-            # ret = cs.vertcat(ret, 0)
+            ret = cs.vertcat(ret, add)
 
     return ret
 
@@ -162,7 +168,7 @@ def draw_obstacle(ax: Axes3D) -> None:
         x = OBSTACLE_RADIUS[i] * np.cos(u) * np.sin(v) + OBSTACLE_POS[i][0]
         y = OBSTACLE_RADIUS[i] * np.sin(u) * np.sin(v) + OBSTACLE_POS[i][1]
         z = OBSTACLE_RADIUS[i] * np.cos(v) + OBSTACLE_POS[i][2]
-        ax.plot_surface(x, y, z, color="red")
+        ax.plot_surface(x, y, z, color="black", alpha=0.5)
 
 
 def draw_time_graph(angle: np.ndarray, time_: np.ndarray) -> None:
@@ -243,7 +249,8 @@ def main():
     }
 
     # 最適化問題を解く
-    solver = cs.nlpsol("solver", "ipopt", nlp)
+    nlp_opts = {"detect_simple_bounds": True}
+    solver = cs.nlpsol("solver", "ipopt", nlp, nlp_opts)
 
     # 初期値
     # theta_init = np.zeros((LINK_NUM * TIME_NUM))
@@ -251,9 +258,9 @@ def main():
 
     opt_result = solver(
         x0=theta_init,
-        lbx=-np.pi * 3,
-        ubx=np.pi * 3,
-        lbg=0.0,
+        lbx=-np.pi,
+        ubx=np.pi,
+        lbg=-0.0,
         ubg=0.0,
     )
 
@@ -309,6 +316,8 @@ def main():
         plt.pause(0.1)
 
     plt.show()
+
+    exit()
 
     # 関節空間の軌跡を描画，縦軸がangle1,横軸がangle2,高さがangle3
     fig = plt.figure()
