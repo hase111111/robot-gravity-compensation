@@ -297,23 +297,24 @@ def main():
     fig = plt.figure()
     ax: Axes3D = fig.add_subplot(111, projection="3d")
 
-    for i in range(TIME_NUM):
-        ax.clear()
+    for _ in range(10):
+        for i in range(TIME_NUM):
+            ax.clear()
 
-        ax.set_xlim(-25, 25)
-        ax.set_xlabel("X [m]")
-        ax.set_ylim(-25, 25)
-        ax.set_ylabel("Y [m]")
-        ax.set_zlim(0, 50)
-        ax.set_zlabel("Z [m]")
-        ax.set_aspect("equal")
+            ax.set_xlim(-25, 25)
+            ax.set_xlabel("X [m]")
+            ax.set_ylim(-25, 25)
+            ax.set_ylabel("Y [m]")
+            ax.set_zlim(0, 50)
+            ax.set_zlabel("Z [m]")
+            ax.set_aspect("equal")
 
-        for j in range(LINK_NUM):
-            param.set_val(j, theta_opt[j][i])
+            for j in range(LINK_NUM):
+                param.set_val(j, theta_opt[j][i])
 
-        draw_obstacle(ax)
-        robot.draw(ax)
-        plt.pause(0.1)
+            draw_obstacle(ax)
+            robot.draw(ax)
+            plt.pause(0.1)
 
     plt.show()
 
