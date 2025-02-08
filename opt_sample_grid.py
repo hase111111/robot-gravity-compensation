@@ -17,13 +17,7 @@ def make_robot_param() -> gb.RobotParam:
     M = np.pi * 2
     ret = gb.RobotParam()
     ret.add_link(
-        gb.LinkParam(a=0.0, alpha=np.pi / 2.0, d=10.0, theta=0.0, min_val=m, max_val=M)
-    )
-    ret.add_link(
         gb.LinkParam(a=10.0, alpha=0.0, d=0.0, theta=0.0, min_val=m, max_val=M)
-    )
-    ret.add_link(
-        gb.LinkParam(a=10.0, alpha=-np.pi / 2.0, d=0.0, theta=0.0, min_val=m, max_val=M)
     )
     ret.add_link(
         gb.LinkParam(a=10.0, alpha=0.0, d=0.0, theta=0.0, min_val=m, max_val=M)
@@ -35,9 +29,7 @@ def make_robot_param() -> gb.RobotParam:
 def make_robot_param_casadi() -> gb.RobotParamCasadi:
     """ロボットのパラメータを作成"""
     ret = gb.RobotParamCasadi()
-    ret.add_link(gb.LinkParamCasadi(a=0.0, alpha=np.pi / 2.0, d=10.0, theta=0.0))
     ret.add_link(gb.LinkParamCasadi(a=10.0, alpha=0.0, d=0.0, theta=0.0))
-    ret.add_link(gb.LinkParamCasadi(a=10.0, alpha=-np.pi / 2.0, d=0.0, theta=0.0))
     ret.add_link(gb.LinkParamCasadi(a=10.0, alpha=0.0, d=0.0, theta=0.0))
 
     return ret
@@ -50,14 +42,14 @@ robot_casadi = gb.RobotCasadi(param_casadi)
 LINK_NUM = param.get_num_links()
 
 # 初期の関節角度
-INITIAL_THETA = [-cs.pi / 3.0, cs.pi / 5.0, -cs.pi / 5.0 * 2, 0.0]  # 変更可能
+INITIAL_THETA = [-cs.pi / 3.0, cs.pi / 5.0]  # 変更可能
 INITIAL_DTHETA = [0.0] * LINK_NUM
 INITIAL_DDTHETA = [0.0] * LINK_NUM
 for i_, t in enumerate(INITIAL_THETA):
     param.set_val(i_, t)
 
 # 目標の関節角度
-TARGET_THETA = [cs.pi / 3.0, cs.pi / 5.0, -cs.pi / 5.0 * 2, 0.0]
+TARGET_THETA = [cs.pi / 3.0, -cs.pi / 5.0]
 TARGET_DTHETA = [0.0] * LINK_NUM
 TARGET_DDTHETA = [0.0] * LINK_NUM
 if LINK_NUM != len(TARGET_THETA):
@@ -65,16 +57,18 @@ if LINK_NUM != len(TARGET_THETA):
 for i_, t in enumerate(TARGET_THETA):
     param.set_val(i_, t)
 
+TARGET_POS = robot.get_joint_pos(LINK_NUM - 1)
+
 
 # 障害物の位置
-OBSTACLE_NUM = 2
-OBSTACLE_POS = [gb.make_pos_vector(20.0, 0.0, 0.0), gb.make_pos_vector(20.0, 0.0, 20.0)]
-OBSTACLE_RADIUS = [10.0, 7.0]
+OBSTACLE_NUM = 1
+OBSTACLE_POS = [gb.make_pos_vector(20.0, 0.0, 0.0)]
+OBSTACLE_RADIUS = [5.0]
 if OBSTACLE_NUM != len(OBSTACLE_POS) or OBSTACLE_NUM != len(OBSTACLE_RADIUS):
     raise ValueError("OBSTACLE_NUM must be equal to len(OBSTACLE_POS)")
 
 # 時間のリスト
-END_TIME = 5.0
+END_TIME = 3.0
 TIME_STEP = 0.1
 TIME_NUM = int(END_TIME / TIME_STEP)
 
@@ -225,7 +219,7 @@ def main():
     print(f"ddtheta_last.shape = {ddtheta_last.shape}, ddtheta_last = {ddtheta_last}")
 
     # コスト関数を定義
-    cost = dist_objetive(theta_mx) + smooth_objective(ddtheta_mx)
+    cost = dist_objetive(theta_mx) + smooth_objective(ddtheta_mx) ** 3
 
     # 制約条件
     constraints = cs.vertcat(
