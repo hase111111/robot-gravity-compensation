@@ -8,13 +8,6 @@
 
 
 from .link_param import LinkParam
-from .link_param_casadi import LinkParamCasadi
 from .robot_param import RobotParam
-from .robot_param_casadi import RobotParamCasadi
 
-__all__ = [
-    "LinkParam",
-    "LinkParamCasadi",
-    "RobotParam",
-    "RobotParamCasadi",
-]
+__all__ = ["LinkParam", "RobotParam"]

@@ -54,6 +54,20 @@ class Robot:
 
         return ans
 
+    def get_joint_trans_casadi(self, i: int, theta_array_casadi):
+        """get the transformation matrix of the i-th joint for casadi"""
+
+        i = _type_checked(i, int)
+        self._validate_joint_num(i)
+
+        ans = _math.get_trans4x4_casadi(*self._origin)
+        for j in range(i + 1):
+            ans = ans @ self._param.get_link_param(j).get_trans_mat_casadi(
+                theta_array_casadi[j]
+            )
+
+        return ans
+
     def get_joint_pos(self, i: int) -> _math.PositionVector:
         """get the position of the i-th joint"""
 
@@ -61,6 +75,16 @@ class Robot:
         self._validate_joint_num(i)
 
         return _math.conv_trans2pos(self.get_joint_trans(i))
+
+    def get_joint_pos_casadi(self, i: int, theta_array_casadi):
+        """get the position of the i-th joint for casadi"""
+
+        i = _type_checked(i, int)
+        self._validate_joint_num(i)
+
+        return _math.conv_trans2pos_casadi(
+            self.get_joint_trans_casadi(i, theta_array_casadi)
+        )
 
     def get_link_num(self) -> int:
         """get the number of links in the robot"""

@@ -16,45 +16,23 @@ def make_robot_param() -> gb.RobotParam:
     m = -np.pi * 2
     M = np.pi * 2
     ret = gb.RobotParam()
-    ret.add_link(
-        gb.LinkParam(a=0.0, alpha=np.pi / 2.0, d=10.0, theta=0.0, min_val=m, max_val=M)
-    )
-    ret.add_link(
-        gb.LinkParam(a=10.0, alpha=0.0, d=0.0, theta=0.0, min_val=m, max_val=M)
-    )
-    ret.add_link(
-        gb.LinkParam(a=10.0, alpha=-np.pi / 2.0, d=0.0, theta=0.0, min_val=m, max_val=M)
-    )
-    ret.add_link(
-        gb.LinkParam(a=10.0, alpha=0.0, d=0.0, theta=0.0, min_val=m, max_val=M)
-    )
+    ret.add_link(gb.LinkParam(a=0.0, alpha=np.pi / 2.0, d=10.0, min_val=m, max_val=M))
+    ret.add_link(gb.LinkParam(a=10.0, alpha=0.0, d=0.0, min_val=m, max_val=M))
+    ret.add_link(gb.LinkParam(a=10.0, alpha=-np.pi / 2.0, d=0.0, min_val=m, max_val=M))
+    ret.add_link(gb.LinkParam(a=10.0, alpha=0.0, d=0.0, min_val=m, max_val=M))
 
     return ret
 
 
-def make_robot_param_casadi() -> gb.RobotParamCasadi:
-    """ロボットのパラメータを作成"""
-    ret = gb.RobotParamCasadi()
-    ret.add_link(gb.LinkParamCasadi(a=0.0, alpha=np.pi / 2.0, d=10.0, theta=0.0))
-    ret.add_link(gb.LinkParamCasadi(a=10.0, alpha=0.0, d=0.0, theta=0.0))
-    ret.add_link(gb.LinkParamCasadi(a=10.0, alpha=-np.pi / 2.0, d=0.0, theta=0.0))
-    ret.add_link(gb.LinkParamCasadi(a=10.0, alpha=0.0, d=0.0, theta=0.0))
-
-    return ret
-
-
-param = make_robot_param()
-param_casadi = make_robot_param_casadi()
-robot = gb.Robot(param)
-robot_casadi = gb.RobotCasadi(param_casadi)
-LINK_NUM = param.get_link_num()
+robot = gb.Robot(make_robot_param())
+LINK_NUM = robot.get_link_num()
 
 # 初期の関節角度
 INITIAL_THETA = [-cs.pi / 3.0, cs.pi / 5.0, -cs.pi / 5.0 * 2, 0.0]  # 変更可能
 INITIAL_DTHETA = [0.0] * LINK_NUM
 INITIAL_DDTHETA = [0.0] * LINK_NUM
-for i_, t in enumerate(INITIAL_THETA):
-    param.set_val(i_, t)
+if LINK_NUM != len(INITIAL_THETA):
+    raise ValueError("LINK_NUM must be equal to len(INITIAL_THETA)")
 
 # 目標の関節角度
 TARGET_THETA = [cs.pi / 3.0, cs.pi / 5.0, -cs.pi / 5.0 * 2, 0.0]
@@ -62,14 +40,12 @@ TARGET_DTHETA = [0.0] * LINK_NUM
 TARGET_DDTHETA = [0.0] * LINK_NUM
 if LINK_NUM != len(TARGET_THETA):
     raise ValueError("LINK_NUM must be equal to len(TARGET_THETA)")
-for i_, t in enumerate(TARGET_THETA):
-    param.set_val(i_, t)
 
 
 # 障害物の位置
 OBSTACLE_NUM = 2
-OBSTACLE_POS = [gb.make_pos_vector(20.0, 0.0, 0.0), gb.make_pos_vector(20.0, 0.0, 20.0)]
-OBSTACLE_RADIUS = [10.0, 7.0]
+OBSTACLE_POS = [gb.make_pos_vector(20.0, 0.0, 5.0), gb.make_pos_vector(20.0, 0.0, 35.0)]
+OBSTACLE_RADIUS = [10.0, 10.0]
 if OBSTACLE_NUM != len(OBSTACLE_POS) or OBSTACLE_NUM != len(OBSTACLE_RADIUS):
     raise ValueError("OBSTACLE_NUM must be equal to len(OBSTACLE_POS)")
 
@@ -125,25 +101,24 @@ def smooth_objective(ddtheta: cs.MX) -> float:
     return cs.sumsqr(jerk)
 
 
-def constraints_obstacle(
-    theta: cs.MX, robot_param_: gb.RobotParamCasadi, robot_: gb.RobotCasadi
-):
+def constraints_obstacle(theta: cs.MX, robot_: gb.Robot) -> cs.MX:
     """障害物による制約"""
-    DIFF = 0.5
+    diff_buffer = 1.0  # 障害物との距離
 
     ret = 0.0
     for i in range(OBSTACLE_NUM):
         for j in range(TIME_NUM):
+            now_theta = cs.vertcat()
             for k in range(LINK_NUM):
-                robot_param_.set_val(k, theta[k * TIME_NUM + j])
+                now_theta = cs.vertcat(now_theta, theta[k * TIME_NUM + j])
 
             add = 0
             for k in range(1, LINK_NUM):
-                pos = robot_.get_joint_pos(k)
+                pos = robot_.get_joint_pos_casadi(k, now_theta)
                 diff = pos - OBSTACLE_POS[i]
                 dist = diff[0] ** 2 + diff[1] ** 2 + diff[2] ** 2  # 距離の二乗
                 dist = cs.sqrt(dist)
-                add = cs.fmax(add, (OBSTACLE_RADIUS[i] + DIFF) - dist)
+                add = cs.fmax(add, (OBSTACLE_RADIUS[i] + diff_buffer) - dist)
 
             # 障害物の中に入っている場合値を大きくし，外に出ている場合は0
             ret += cs.fmax(0, add)
@@ -207,9 +182,7 @@ def main():
     ddtheta_last = get_end_data(ddtheta_mx, TIME_NUM - 2, LINK_NUM)
 
     # コスト関数を定義
-    cost = smooth_objective(ddtheta_mx) + 0.001 * constraints_obstacle(
-        theta_mx, param_casadi, robot_casadi
-    )
+    cost = smooth_objective(ddtheta_mx) + 0.0001 * constraints_obstacle(theta_mx, robot)
 
     # 制約条件
     constraints = cs.vertcat(
@@ -236,7 +209,8 @@ def main():
     solver = cs.nlpsol("solver", "ipopt", nlp)
 
     # 初期値を設定
-    theta_init = [np.random.uniform(-np.pi, np.pi)] * (LINK_NUM * TIME_NUM)
+    # theta_init = [np.random.uniform(-np.pi, np.pi)] * (LINK_NUM * TIME_NUM)
+    theta_init = [0.0] * (LINK_NUM * TIME_NUM)
 
     opt_result = solver(
         x0=theta_init,
@@ -265,7 +239,7 @@ def main():
     # ロボットを描画
     for i in range(int(TIME_NUM / 2)):
         for j in range(LINK_NUM):
-            param.set_val(j, theta_opt[j][i * 2])
+            robot.set_theta(j, theta_opt[j][i * 2])
         robot.draw(ax)
 
     # 障害物を描画
@@ -292,15 +266,13 @@ def main():
             ax.set_aspect("equal")
 
             for j in range(LINK_NUM):
-                param.set_val(j, theta_opt[j][i])
+                robot.set_theta(j, theta_opt[j][i])
 
             draw_obstacle(ax)
             robot.draw(ax)
             plt.pause(0.1)
 
     plt.show()
-
-    exit()
 
     # # 関節空間の軌跡を描画，縦軸がangle1,横軸がangle2,高さがangle3
     # fig = plt.figure()
