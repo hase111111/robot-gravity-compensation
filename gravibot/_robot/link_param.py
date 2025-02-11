@@ -10,7 +10,13 @@
 import numpy as np
 
 from .._math.type import TransMatrix
-from .._math.trans import get_rot4x4, get_trans4x4, zero_small_values4x4
+from .._math.trans import (
+    get_rot4x4,
+    get_trans4x4,
+    zero_small_values4x4,
+    get_rot4x4_casadi,
+    get_trans4x4_casadi,
+)
 from .._util.type_check import _type_checked
 
 
@@ -49,6 +55,20 @@ class LinkParam:
             @ get_rot4x4("x", self.alpha)
         )
         return zero_small_values4x4(ans)
+
+    def get_trans_mat_casadi(self, theta) -> TransMatrix:
+        """
+        return link's A matrix.
+        this method is for casadi.
+        """
+
+        ans = (
+            get_rot4x4_casadi("z", theta)
+            @ get_trans4x4_casadi(0.0, 0.0, self.d)
+            @ get_trans4x4_casadi(self.a, 0.0, 0.0)
+            @ get_rot4x4_casadi("x", self.alpha)
+        )
+        return ans
 
     @property
     def a(self) -> float:
