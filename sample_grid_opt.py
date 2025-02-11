@@ -42,12 +42,60 @@ if LINK_NUM != len(TARGET_THETA):
     raise ValueError("LINK_NUM must be equal to len(TARGET_THETA)")
 
 
-# 障害物の位置
-OBSTACLE_NUM = 2
-OBSTACLE_POS = [gb.make_pos_vector(20.0, 0.0, 5.0), gb.make_pos_vector(20.0, 0.0, 35.0)]
-OBSTACLE_RADIUS = [10.0, 10.0]
-if OBSTACLE_NUM != len(OBSTACLE_POS) or OBSTACLE_NUM != len(OBSTACLE_RADIUS):
-    raise ValueError("OBSTACLE_NUM must be equal to len(OBSTACLE_POS)")
+# 作業空間
+WORKSPACE_X = [-30.0, 30.0]
+WORKSPACE_Y = [-30.0, 30.0]
+WORKSPACE_Z = [0.0, 60.0]
+GRID_SIZE = 5.0
+
+# 作業空間をグリッドで分割し，危険値を設定(0:安全, 1:危険)
+GRID_X = int((WORKSPACE_X[1] - WORKSPACE_X[0]) / GRID_SIZE)
+GRID_Y = int((WORKSPACE_Y[1] - WORKSPACE_Y[0]) / GRID_SIZE)
+GRID_Z = int((WORKSPACE_Z[1] - WORKSPACE_Z[0]) / GRID_SIZE)
+
+workspace_grid = np.zeros((GRID_X, GRID_Y, GRID_Z))
+
+WARNING_X = [10.0, 30.0]
+WARNING_Y = [-5.0, 5.0]
+WARNING_Z = [0.0, 15.0]
+
+for i_ in range(GRID_X):
+    for j_ in range(GRID_Y):
+        for k_ in range(GRID_Z):
+            if (
+                WARNING_X[0] <= i_ * GRID_SIZE + WORKSPACE_X[0] < WARNING_X[1]
+                and WARNING_Y[0] <= j_ * GRID_SIZE + WORKSPACE_Y[0] < WARNING_Y[1]
+                and WARNING_Z[0] <= k_ * GRID_SIZE + WORKSPACE_Z[0] < WARNING_Z[1]
+            ):
+                workspace_grid[i_, j_, k_] = 1.0
+
+
+# CasADiのMX変数を定義 (ロボットの位置 x, y, z)
+x = cs.MX.sym("x")
+y = cs.MX.sym("y")
+z = cs.MX.sym("z")
+
+# インデックスの計算
+ix = cs.floor((x - WORKSPACE_X[0]) / GRID_SIZE)
+iy = cs.floor((y - WORKSPACE_Y[0]) / GRID_SIZE)
+iz = cs.floor((z - WORKSPACE_Z[0]) / GRID_SIZE)
+
+# インデックスの範囲制限
+ix = cs.if_else(ix < 0, 0, cs.if_else(ix >= GRID_X, GRID_X - 1, ix))
+iy = cs.if_else(iy < 0, 0, cs.if_else(iy >= GRID_Y, GRID_Y - 1, iy))
+iz = cs.if_else(iz < 0, 0, cs.if_else(iz >= GRID_Z, GRID_Z - 1, iz))
+
+# グリッド値の取得（if_elseを使って手動で探索）
+grid_value = 0
+for i_ in range(GRID_X):
+    for j_ in range(GRID_Y):
+        for k_ in range(GRID_Z):
+            condition = cs.logic_and(cs.logic_and(ix == i_, iy == j_), iz == k_)
+            grid_value = cs.if_else(condition, workspace_grid[i_, j_, k_], grid_value)
+
+# CasADiの関数として定義
+grid_lookup = cs.Function("grid_lookup", [x, y, z], [grid_value])
+
 
 # 時間のリスト
 END_TIME = 5.0
@@ -103,38 +151,59 @@ def smooth_objective(ddtheta: cs.MX) -> float:
 
 def constraints_obstacle(theta: cs.MX, robot_: gb.Robot) -> cs.MX:
     """障害物による制約"""
-    diff_buffer = 1.0  # 障害物との距離
 
     ret = 0.0
-    for i in range(OBSTACLE_NUM):
-        for j in range(TIME_NUM):
-            now_theta = cs.vertcat()
-            for k in range(LINK_NUM):
-                now_theta = cs.vertcat(now_theta, theta[k * TIME_NUM + j])
+    for i in range(TIME_NUM):
+        now_theta = cs.vertcat()
+        for j in range(LINK_NUM):
+            now_theta = cs.vertcat(now_theta, theta[j * TIME_NUM + i])
 
-            add = 0
-            for k in range(1, LINK_NUM):
-                pos = robot_.get_joint_pos_casadi(k, now_theta)
-                diff = pos - OBSTACLE_POS[i]
-                dist = diff[0] ** 2 + diff[1] ** 2 + diff[2] ** 2  # 距離の二乗
-                dist = cs.sqrt(dist)
-                add = cs.fmax(add, (OBSTACLE_RADIUS[i] + diff_buffer) - dist)
-
-            # 障害物の中に入っている場合値を大きくし，外に出ている場合は0
-            ret += cs.fmax(0, add)
+        past_pos = None
+        for j in range(LINK_NUM):
+            pos = robot_.get_joint_pos_casadi(j, now_theta)
+            ret += grid_lookup(pos[0], pos[1], pos[2])
+            if past_pos is not None:
+                center = pos + (pos - past_pos) / 2
+                ret += grid_lookup(center[0], center[1], center[2])
+                center = pos + (pos - past_pos) / 4
+                ret += grid_lookup(center[0], center[1], center[2])
+                center = pos + (pos - past_pos) * 3 / 4
+                ret += grid_lookup(center[0], center[1], center[2])
+            past_pos = pos
 
     return ret
 
 
 def draw_obstacle(ax: Axes3D) -> None:
     """障害物を描画"""
-    for i in range(OBSTACLE_NUM):
-        # 球を描画する
-        u, v = np.mgrid[0 : (np.pi * 2.0) : 10j, 0 : np.pi : 10j]  # type: ignore
-        x = OBSTACLE_RADIUS[i] * np.cos(u) * np.sin(v) + OBSTACLE_POS[i][0]
-        y = OBSTACLE_RADIUS[i] * np.sin(u) * np.sin(v) + OBSTACLE_POS[i][1]
-        z = OBSTACLE_RADIUS[i] * np.cos(v) + OBSTACLE_POS[i][2]
-        ax.plot_surface(x, y, z, color="black", alpha=0.5)
+    for i in range(GRID_X):
+        for j in range(GRID_Y):
+            for k in range(GRID_Z):
+                if workspace_grid[i, j, k] == 1:
+                    # 四角形を描画
+                    x = [
+                        i * GRID_SIZE + WORKSPACE_X[0],
+                        (i + 1) * GRID_SIZE + WORKSPACE_X[0],
+                    ]
+                    y = [
+                        j * GRID_SIZE + WORKSPACE_Y[0],
+                        (j + 1) * GRID_SIZE + WORKSPACE_Y[0],
+                    ]
+                    z = [
+                        k * GRID_SIZE + WORKSPACE_Z[0],
+                        (k + 1) * GRID_SIZE + WORKSPACE_Z[0],
+                    ]
+                    xx, yy = np.meshgrid(x, y)
+                    ax.plot_surface(xx, yy, np.full_like(xx, z[0]), alpha=0.5)
+                    ax.plot_surface(xx, yy, np.full_like(xx, z[1]), alpha=0.5)
+
+                    y, z = np.meshgrid(y, z)
+                    ax.plot_surface(np.full_like(y, x[0]), y, z, alpha=0.5)
+                    ax.plot_surface(np.full_like(y, x[1]), y, z, alpha=0.5)
+
+                    x, z = np.meshgrid(x, z)
+                    ax.plot_surface(x, np.full_like(x, y[0]), z, alpha=0.5)
+                    ax.plot_surface(x, np.full_like(x, y[1]), z, alpha=0.5)
 
 
 def draw_time_graph(angle: np.ndarray, time_: np.ndarray) -> None:
@@ -182,7 +251,7 @@ def main():
     ddtheta_last = get_end_data(ddtheta_mx, TIME_NUM - 2, LINK_NUM)
 
     # コスト関数を定義
-    cost = smooth_objective(ddtheta_mx) + 0.0001 * constraints_obstacle(theta_mx, robot)
+    cost = 0.001 * smooth_objective(ddtheta_mx) + constraints_obstacle(theta_mx, robot)
 
     # 制約条件
     constraints = cs.vertcat(
@@ -210,12 +279,12 @@ def main():
 
     # 初期値を設定
     # theta_init = [np.random.uniform(-np.pi, np.pi)] * (LINK_NUM * TIME_NUM)
-    theta_init = [0.0] * (LINK_NUM * TIME_NUM)
+    theta_init = [np.pi / 2] * (LINK_NUM * TIME_NUM)
 
     opt_result = solver(
         x0=theta_init,
-        lbx=-np.pi * 2,
-        ubx=np.pi * 2,
+        lbx=-np.pi,
+        ubx=np.pi,
         lbg=-0.0,
         ubg=0.0,
     )
@@ -253,7 +322,7 @@ def main():
     fig = plt.figure()
     ax: Axes3D = fig.add_subplot(111, projection="3d")  # type: ignore
 
-    for _ in range(10):
+    for _ in range(1):
         for i in range(TIME_NUM):
             ax.clear()
 
