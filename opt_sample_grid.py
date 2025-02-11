@@ -39,7 +39,7 @@ param = make_robot_param()
 param_casadi = make_robot_param_casadi()
 robot = gb.Robot(param)
 robot_casadi = gb.RobotCasadi(param_casadi)
-LINK_NUM = param.get_num_links()
+LINK_NUM = param.get_link_num()
 
 # 初期の関節角度
 INITIAL_THETA = [-cs.pi / 3.0, cs.pi / 5.0]  # 変更可能

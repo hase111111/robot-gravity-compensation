@@ -22,43 +22,33 @@ class LinkParam:
         a: float,
         alpha: float,
         d: float,
-        theta: float,
         *,
-        is_rot_axis: bool = True,
         min_val: float = -np.pi,
         max_val: float = np.pi,
     ):
         self._a = _type_checked(a, float)
         self._alpha = _type_checked(alpha, float)
         self._d = _type_checked(d, float)
-        self._theta = _type_checked(theta, float)
-        self.is_rot_axis = _type_checked(is_rot_axis, bool)
-        self.min_val = _type_checked(min_val, float)
-        self.max_val = _type_checked(max_val, float)
+        self._min_val = _type_checked(min_val, float)
+        self._max_val = _type_checked(max_val, float)
 
-    def get_trans_mat(self) -> TransMatrix:
+    def get_trans_mat(self, theta) -> TransMatrix:
         """return link's A matrix"""
+
+        theta = _type_checked(theta, float)
+
+        if not self._min_val <= theta <= self._max_val:
+            raise ValueError(
+                f"theta should be in range [{self._min_val}, {self._max_val}]"
+            )
+
         ans = (
-            get_rot4x4("z", self.theta)
+            get_rot4x4("z", theta)
             @ get_trans4x4(0.0, 0.0, self.d)
             @ get_trans4x4(self.a, 0.0, 0.0)
             @ get_rot4x4("x", self.alpha)
         )
         return zero_small_values4x4(ans)
-
-    def set_val(self, val: float) -> None:
-        """set d and theta"""
-
-        val = _type_checked(val, float)
-
-        if not self.min_val <= val <= self.max_val:
-            raise ValueError(
-                f"theta should be in range [{self.min_val}, {self.max_val}]"
-            )
-        if self.is_rot_axis:
-            self._theta = val
-        else:
-            self._d = val
 
     @property
     def a(self) -> float:
@@ -85,13 +75,22 @@ class LinkParam:
 
     @d.setter
     def d(self, _):
-        raise AttributeError("Should use set_val method")
+        raise AttributeError("d is read-only")
 
     @property
-    def theta(self) -> float:
-        """getter for theta, theta can being changed by set method"""
-        return self._theta
+    def min_val(self) -> float:
+        """getter for min_val, min_val is read-only"""
+        return self._min_val
 
-    @theta.setter
-    def theta(self, _):
-        raise AttributeError("Should use set_val method")
+    @min_val.setter
+    def min_val(self, _):
+        raise AttributeError("min_val is read-only")
+
+    @property
+    def max_val(self) -> float:
+        """getter for max_val, max_val is read-only"""
+        return self._max_val
+
+    @max_val.setter
+    def max_val(self, _):
+        raise AttributeError("max_val is read-only")

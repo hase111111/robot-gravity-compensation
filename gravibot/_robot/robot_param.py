@@ -34,15 +34,7 @@ class RobotParam:
 
         self._link.append(link_param)
 
-    def set_val(self, idx: int, theta: float) -> None:
-        """set the i-th link's theta value"""
-
-        idx = _type_checked(idx, int)
-        theta = _type_checked(theta, float)
-
-        self._link[idx].set_val(theta)
-
-    def get_link(self, idx: int) -> LinkParam:
+    def get_link_param(self, idx: int) -> LinkParam:
         """get the i-th link.
         note that the index starts from 0"""
 
@@ -53,7 +45,7 @@ class RobotParam:
 
         return self._link[idx]
 
-    def get_num_links(self) -> int:
+    def get_link_num(self) -> int:
         """get the number of links in the robot"""
 
         return len(self._link)

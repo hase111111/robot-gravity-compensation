@@ -25,9 +25,9 @@ def reset_table(ax) -> None:
 
 def make_robot_param() -> gb.RobotParam:
     param = gb.RobotParam()
-    param.add_link(gb.LinkParam(a=0.0, alpha=np.pi / 2.0, d=10.0, theta=0.0))
-    param.add_link(gb.LinkParam(a=10.0, alpha=-np.pi / 2.0, d=0.0, theta=0.0))
-    param.add_link(gb.LinkParam(a=10.0, alpha=0.0, d=0.0, theta=0.0))
+    param.add_link(gb.LinkParam(a=0.0, alpha=np.pi / 2.0, d=10.0))
+    param.add_link(gb.LinkParam(a=10.0, alpha=-np.pi / 2.0, d=0.0))
+    param.add_link(gb.LinkParam(a=10.0, alpha=0.0, d=0.0))
 
     return param
 
@@ -86,8 +86,7 @@ def draw_table(ax, robot: gb.Robot, end_effecter: gb.EndEffecter) -> None:
 
 def main():
     """Main function to visualize a robot and its end effecter with sliders."""
-    param = make_robot_param()
-    robot = gb.Robot(param)
+    robot = gb.Robot(make_robot_param(), origin=[0.0, 10.0, 0.0])
     endeffecter = gb.EndEffecter([3.0, 0.0, 0.0])
 
     # 3Dグラフの初期化
@@ -102,14 +101,14 @@ def main():
     draw_table(table, robot, endeffecter)
 
     # スライダーの追加
-    sliders = add_slider(0.13, param.get_num_links())
+    sliders = add_slider(0.13, robot.get_link_num())
 
     # スライダーの更新時に呼び出す関数
     def update(_):
         reset_graph(ax)
         reset_table(table)
         for i, slider in enumerate(sliders):
-            param.set_val(i, slider.val)
+            robot.set_theta(i, slider.val)
         robot.draw(ax)
         endeffecter.origin = robot.get_joint_pos(2)
         endeffecter.draw(ax, robot.get_joint_trans(2))
