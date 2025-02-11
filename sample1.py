@@ -8,6 +8,7 @@ import gravibot as gb
 
 
 def reset_graph(ax: Axes3D) -> None:
+    """Reset the 3D graph for animation."""
     ax.clear()
     ax.set_xlim(-25, 25)
     ax.set_xlabel("X [m]")
@@ -18,21 +19,23 @@ def reset_graph(ax: Axes3D) -> None:
     ax.set_aspect("equal")
 
 
-def reset_table(ax) -> None:
+def reset_table(ax: Axes3D) -> None:
+    """Reset the table for animation."""
     ax.clear()
     ax.axis("off")
 
 
 def make_robot_param() -> gb.RobotParam:
+    """Create a robot parameter."""
     param = gb.RobotParam()
     param.add_link(gb.LinkParam(a=0.0, alpha=np.pi / 2.0, d=10.0))
     param.add_link(gb.LinkParam(a=10.0, alpha=-np.pi / 2.0, d=0.0))
     param.add_link(gb.LinkParam(a=10.0, alpha=0.0, d=0.0))
-
     return param
 
 
 def add_slider(slider_ax_start, num_links):
+    """Add sliders to the plot"""
     sliders = []
     for i in range(num_links):
         ax_slider = plt.axes([0.2, slider_ax_start, 0.65, 0.03])
@@ -43,7 +46,9 @@ def add_slider(slider_ax_start, num_links):
     return sliders
 
 
-def draw_table(ax, robot: gb.Robot, end_effecter: gb.EndEffecter) -> None:
+def draw_table(ax: Axes3D, robot: gb.Robot, end_effecter: gb.EndEffecter) -> None:
+    """Draw a table to show the robot's data."""
+
     # ロボットの手先の位置を取得
     pos = robot.get_joint_pos(2)
     coord = gb.conv_trans2rot(robot.get_joint_trans(2))
@@ -62,7 +67,7 @@ def draw_table(ax, robot: gb.Robot, end_effecter: gb.EndEffecter) -> None:
     }
 
     # テーブルのデータ作成
-    cell_text = [[key, data[key]] for key in data.keys()]
+    cell_text = [[key, value] for key, value in data.items()]
     col_labels = ["Data", "Value"]
 
     # テーブルの描画
