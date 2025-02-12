@@ -44,8 +44,8 @@ if LINK_NUM != len(TARGET_THETA):
 
 # 作業空間
 WORKSPACE_X = [-30.0, 30.0]
-WORKSPACE_Y = [-10.0, 10.0]
-WORKSPACE_Z = [0.0, 10.0]
+WORKSPACE_Y = [-30.0, 30.0]
+WORKSPACE_Z = [0.0, 60.0]
 GRID_SIZE = 10.0
 
 # 作業空間をグリッドで分割し，危険値を設定(0:安全, 1:危険)
@@ -197,11 +197,11 @@ def draw_obstacle(ax: Axes3D) -> None:
                     ax.plot_surface(xx, yy, np.full_like(xx, z[0]), alpha=0.5)
                     ax.plot_surface(xx, yy, np.full_like(xx, z[1]), alpha=0.5)
 
-                    y, z = np.meshgrid(y, z)  # type: ignore
+                    y, z = np.meshgrid(y, z)
                     ax.plot_surface(np.full_like(y, x[0]), y, z, alpha=0.5)
                     ax.plot_surface(np.full_like(y, x[1]), y, z, alpha=0.5)
 
-                    x, z = np.meshgrid(x, z)  # type: ignore
+                    x, z = np.meshgrid(x, z)
                     ax.plot_surface(x, np.full_like(x, y[0]), z, alpha=0.5)
                     ax.plot_surface(x, np.full_like(x, y[1]), z, alpha=0.5)
 
@@ -251,7 +251,7 @@ def main():
     ddtheta_last = get_end_data(ddtheta_mx, TIME_NUM - 2, LINK_NUM)
 
     # コスト関数を定義
-    cost = 0.0001 * smooth_objective(ddtheta_mx) + constraints_obstacle(theta_mx, robot)
+    cost = constraints_obstacle(theta_mx, robot)
 
     # 制約条件
     constraints = cs.vertcat(
@@ -261,6 +261,7 @@ def main():
         dtheta_last - TARGET_DTHETA,
         ddtheta_first - INITIAL_DDTHETA,
         ddtheta_last - TARGET_DDTHETA,
+        smooth_objective(ddtheta_mx),
     )
 
     print(
@@ -278,25 +279,29 @@ def main():
     solver = cs.nlpsol("solver", "ipopt", nlp)
 
     # 初期値を設定
-    theta_init = [np.random.uniform(-np.pi, np.pi)] * (LINK_NUM * TIME_NUM)
+    # theta_init = [np.random.uniform(-np.pi, np.pi)] * (LINK_NUM * TIME_NUM)
+    theta_init = [0] * (LINK_NUM * TIME_NUM)
 
-    # 初期変位と，目標変位を設定
-    for i in range(LINK_NUM):
-        theta_init[i * TIME_NUM] = INITIAL_THETA[i]
-        theta_init[i * TIME_NUM + TIME_NUM - 1] = TARGET_THETA[i]
+    # 初期軌道は直線
+    for i in range(LINK_NUM * TIME_NUM):
+        theta_init[i] = (
+            INITIAL_THETA[i % LINK_NUM]
+            + (TARGET_THETA[i % LINK_NUM] - INITIAL_THETA[i % LINK_NUM])
+            * (i // LINK_NUM)
+            / TIME_NUM
+        )
 
     opt_result = solver(
         x0=theta_init,
-        lbx=-np.pi,
-        ubx=np.pi,
-        lbg=-0.0,
-        ubg=0.0,
+        lbx=-np.pi / 2,
+        ubx=np.pi / 2,
+        lbg=[-0.0] * (constraints.shape[0] - 1) + [-1],
+        ubg=[0.0] * (constraints.shape[0] - 1) + [1],
     )
 
     # 最適化結果を取得
     theta_opt = get_result(opt_result["x"], TIME_NUM, LINK_NUM)
     print(f"theta_opt = {theta_opt}")
-    print(f"opt_result = {opt_result['f']}")
 
     # 図に描画
     fig = plt.figure()
