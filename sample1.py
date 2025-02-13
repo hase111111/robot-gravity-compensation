@@ -10,11 +10,11 @@ import gravibot as gb
 def reset_graph(ax: Axes3D) -> None:
     """Reset the 3D graph for animation."""
     ax.clear()
-    ax.set_xlim(-25, 25)
+    ax.set_xlim(-0.5, 0.5)
     ax.set_xlabel("X [m]")
-    ax.set_ylim(-25, 25)
+    ax.set_ylim(-0.5, 0.5)
     ax.set_ylabel("Y [m]")
-    ax.set_zlim(0, 50)
+    ax.set_zlim(0.0, 1.0)
     ax.set_zlabel("Z [m]")
     ax.set_aspect("equal")
 
@@ -27,11 +27,40 @@ def reset_table(ax: Axes3D) -> None:
 
 def make_robot_param() -> gb.RobotParam:
     """Create a robot parameter."""
-    param = gb.RobotParam()
-    param.add_link(gb.LinkParam(a=0.0, alpha=np.pi / 2.0, d=10.0))
-    param.add_link(gb.LinkParam(a=10.0, alpha=-np.pi / 2.0, d=0.0))
-    param.add_link(gb.LinkParam(a=10.0, alpha=0.0, d=0.0))
-    return param
+    ret = gb.RobotParam()
+    ret.add_link(gb.LinkParam(a=0.134202, alpha=np.pi / 2, d=0.251871))
+    ret.add_link(
+        gb.LinkParam(
+            a=0.0, alpha=np.pi / 2, d=0.0, min_val=np.pi / 2, max_val=np.pi / 2
+        )
+    )
+    ret.add_link(gb.LinkParam(a=0.027177, alpha=-np.pi / 2, d=0.064702))
+    ret.add_link(gb.LinkParam(a=-0.0455, alpha=np.pi / 2, d=0.0))
+    ret.add_link(
+        gb.LinkParam(
+            a=0.0, alpha=np.pi / 2, d=0.0, min_val=np.pi / 2, max_val=np.pi / 2
+        )
+    )
+    ret.add_link(gb.LinkParam(a=0.0, alpha=-np.pi / 2, d=-0.2085))
+    ret.add_link(
+        gb.LinkParam(a=0.0, alpha=0.0, d=0.0, min_val=np.pi / 2, max_val=np.pi / 2)
+    )
+    ret.add_link(gb.LinkParam(a=0.07, alpha=0.0, d=0.0))
+    ret.add_link(gb.LinkParam(a=0.1095, alpha=0.0, d=0.0))
+    ret.add_link(
+        gb.LinkParam(
+            a=0.0, alpha=np.pi / 2, d=0.0, min_val=np.pi / 2, max_val=np.pi / 2
+        )
+    )
+    ret.add_link(gb.LinkParam(a=0.0, alpha=np.pi / 2, d=0.124))
+    ret.add_link(
+        gb.LinkParam(
+            a=0.0, alpha=-np.pi / 2, d=0.0, min_val=np.pi / 2, max_val=np.pi / 2
+        )
+    )
+    ret.add_link(gb.LinkParam(a=0.15, alpha=0.0, d=0.0))
+
+    return ret
 
 
 def add_slider(slider_ax_start, num_links):
@@ -91,8 +120,11 @@ def draw_table(ax: Axes3D, robot: gb.Robot, end_effecter: gb.EndEffecter) -> Non
 
 def main():
     """Main function to visualize a robot and its end effecter with sliders."""
-    robot = gb.Robot(make_robot_param(), origin=[0.0, 10.0, 0.0])
+    robot = gb.Robot(make_robot_param(), origin=[0.0, 0.0, 0.0])
+    for i in range(robot.get_link_num()):
+        robot.set_theta(i, 0.0)
     endeffecter = gb.EndEffecter([3.0, 0.0, 0.0])
+    draw_endeffecter = False
 
     # 3Dグラフの初期化
     fig = plt.figure(figsize=(8, 6))
@@ -102,11 +134,16 @@ def main():
     # グラフの初期化
     reset_graph(ax)
     robot.draw(ax)
-    endeffecter.draw(ax, robot.get_joint_trans(2))
-    draw_table(table, robot, endeffecter)
+    if draw_endeffecter:
+        endeffecter.draw(ax, robot.get_joint_trans(2))
+
+    try:
+        draw_table(table, robot, endeffecter)
+    except:
+        pass
 
     # スライダーの追加
-    sliders = add_slider(0.13, robot.get_link_num())
+    sliders = add_slider(0.20, robot.get_link_num())
 
     # スライダーの更新時に呼び出す関数
     def update(_):
@@ -116,8 +153,14 @@ def main():
             robot.set_theta(i, slider.val)
         robot.draw(ax)
         endeffecter.origin = robot.get_joint_pos(2)
-        endeffecter.draw(ax, robot.get_joint_trans(2))
-        draw_table(table, robot, endeffecter)
+        if draw_endeffecter:
+            endeffecter.draw(ax, robot.get_joint_trans(2))
+
+        try:
+            draw_table(table, robot, endeffecter)
+        except:
+            pass
+
         plt.draw()
 
     for slider in sliders:

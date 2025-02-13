@@ -41,7 +41,10 @@ class LinkParam:
     def get_trans_mat(self, theta) -> TransMatrix:
         """return link's A matrix"""
 
-        theta = _type_checked(theta, float)
+        if self.is_fixed():
+            theta = self._min_val
+        else:
+            theta = _type_checked(theta, float)
 
         if not self._min_val <= theta <= self._max_val:
             raise ValueError(
@@ -62,6 +65,9 @@ class LinkParam:
         this method is for casadi.
         """
 
+        if self.is_fixed():
+            theta = self._min_val
+
         ans = (
             get_rot4x4_casadi("z", theta)
             @ get_trans4x4_casadi(0.0, 0.0, self.d)
@@ -69,6 +75,10 @@ class LinkParam:
             @ get_rot4x4_casadi("x", self.alpha)
         )
         return ans
+
+    def is_fixed(self) -> bool:
+        """return if the link is fixed"""
+        return self._min_val == self._max_val
 
     @property
     def a(self) -> float:

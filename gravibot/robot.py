@@ -49,8 +49,17 @@ class Robot:
         self._validate_joint_num(i)
 
         ans = _math.get_trans4x4(*self._origin)
+        t_cnt = 0
         for j in range(i + 1):
-            ans = ans @ self._param.get_link_param(j).get_trans_mat(self._theta[j])
+            if self._param.get_link_param(j).is_fixed():
+                ans = ans @ self._param.get_link_param(j).get_trans_mat(
+                    self._param.get_link_param(j).min_val
+                )
+            else:
+                ans = ans @ self._param.get_link_param(j).get_trans_mat(
+                    self._theta[t_cnt]
+                )
+                t_cnt += 1
 
         return ans
 
@@ -61,10 +70,17 @@ class Robot:
         self._validate_joint_num(i)
 
         ans = _math.get_trans4x4_casadi(*self._origin)
+        t_cnt = 0
         for j in range(i + 1):
-            ans = ans @ self._param.get_link_param(j).get_trans_mat_casadi(
-                theta_array_casadi[j]
-            )
+            if self._param.get_link_param(j).is_fixed():
+                ans = ans @ self._param.get_link_param(j).get_trans_mat_casadi(
+                    self._param.get_link_param(j).min_val
+                )
+            else:
+                ans = ans @ self._param.get_link_param(j).get_trans_mat_casadi(
+                    theta_array_casadi[t_cnt]
+                )
+                t_cnt += 1
 
         return ans
 
@@ -93,6 +109,14 @@ class Robot:
     def draw(self, ax: Axes3D):
         """draw the robot"""
         for i in range(self._param.get_link_num() - 1):
+            self._draw_link(ax, self.get_joint_pos(i), self.get_joint_pos(i + 1))
+
+            if (
+                i + 1 < self._param.get_link_num()
+                and self._param.get_link_param(i + 1).is_fixed()
+            ):
+                continue
+
             _renderer.draw_cylinder3d_by_trans(
                 ax,
                 self._link_radius,
@@ -100,7 +124,6 @@ class Robot:
                 self.get_joint_trans(i),
                 color="blue",
             )
-            self._draw_link(ax, self.get_joint_pos(i), self.get_joint_pos(i + 1))
 
         self._draw_link(ax, self._origin, self.get_joint_pos(0))
 
@@ -130,7 +153,8 @@ class Robot:
             rotation_matrix = _math.make_identity_rot_matrix()
         else:
             x_new = np.cross(z_base, pos1to2)
-            x_new /= np.linalg.norm(x_new)
+            temp = np.linalg.norm(x_new)
+            x_new /= temp if temp > 1e-10 else 1.0
             y_new = np.cross(pos1to2, x_new)
             rotation_matrix = np.array([x_new, y_new, pos1to2]).T
 
@@ -152,9 +176,8 @@ class Robot:
         # search for the maximum length of the link
         max_length = 0.0
         for i in range(self._param.get_link_num() - 1):
-            length = float(
-                np.linalg.norm(self.get_joint_pos(i) - self.get_joint_pos(i + 1))
-            )
+            li_param = self._param.get_link_param(i)
+            length = np.sqrt(li_param.a**2 + li_param.d**2)
             max_length = max(max_length, length)
 
-        return max_length / 10, max_length / 5
+        return max_length / 20, max_length / 10

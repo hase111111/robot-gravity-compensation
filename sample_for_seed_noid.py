@@ -16,10 +16,37 @@ def make_robot_param() -> gb.RobotParam:
     m = -np.pi * 2
     M = np.pi * 2
     ret = gb.RobotParam()
-    ret.add_link(gb.LinkParam(a=0.0, alpha=np.pi / 2.0, d=10.0, min_val=m, max_val=M))
-    ret.add_link(gb.LinkParam(a=10.0, alpha=0.0, d=0.0, min_val=m, max_val=M))
-    ret.add_link(gb.LinkParam(a=10.0, alpha=-np.pi / 2.0, d=0.0, min_val=m, max_val=M))
-    ret.add_link(gb.LinkParam(a=10.0, alpha=0.0, d=0.0, min_val=m, max_val=M))
+    ret.add_link(gb.LinkParam(a=0.134202, alpha=np.pi / 2, d=0.251871))
+    ret.add_link(
+        gb.LinkParam(
+            a=0.0, alpha=np.pi / 2, d=0.0, min_val=np.pi / 2, max_val=np.pi / 2
+        )
+    )
+    ret.add_link(gb.LinkParam(a=0.027177, alpha=-np.pi / 2, d=0.064702))
+    ret.add_link(gb.LinkParam(a=-0.0455, alpha=np.pi / 2, d=0.0))
+    ret.add_link(
+        gb.LinkParam(
+            a=0.0, alpha=np.pi / 2, d=0.0, min_val=np.pi / 2, max_val=np.pi / 2
+        )
+    )
+    ret.add_link(gb.LinkParam(a=0.0, alpha=-np.pi / 2, d=-0.2085))
+    ret.add_link(
+        gb.LinkParam(a=0.0, alpha=0.0, d=0.0, min_val=np.pi / 2, max_val=np.pi / 2)
+    )
+    ret.add_link(gb.LinkParam(a=0.07, alpha=0.0, d=0.0))
+    ret.add_link(gb.LinkParam(a=0.1095, alpha=0.0, d=0.0))
+    ret.add_link(
+        gb.LinkParam(
+            a=0.0, alpha=np.pi / 2, d=0.0, min_val=np.pi / 2, max_val=np.pi / 2
+        )
+    )
+    ret.add_link(gb.LinkParam(a=0.0, alpha=np.pi / 2, d=0.124))
+    ret.add_link(
+        gb.LinkParam(
+            a=0.0, alpha=-np.pi / 2, d=0.0, min_val=np.pi / 2, max_val=np.pi / 2
+        )
+    )
+    ret.add_link(gb.LinkParam(a=0.15, alpha=0.0, d=0.0))
 
     return ret
 
@@ -251,7 +278,9 @@ def main():
     ddtheta_last = get_end_data(ddtheta_mx, TIME_NUM - 2, LINK_NUM)
 
     # コスト関数を定義
-    cost = 0.0001 * smooth_objective(ddtheta_mx) + constraints_obstacle(theta_mx, robot)
+    cost = 0.00001 * smooth_objective(ddtheta_mx) + constraints_obstacle(
+        theta_mx, robot
+    )
 
     # 制約条件
     constraints = cs.vertcat(

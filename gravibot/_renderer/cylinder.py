@@ -97,9 +97,18 @@ def draw_cylinder3d(
     ax.plot_trisurf(
         x_cap_top, y_cap_top, z_top, color=color, alpha=1.0, edgecolor="none"
     )  # 上面
-    ax.plot_trisurf(
-        x_cap_bottom, y_cap_bottom, z_bottom, color=color, alpha=1.0, edgecolor="none"
-    )  # 下面
+
+    try:
+        ax.plot_trisurf(
+            x_cap_bottom,
+            y_cap_bottom,
+            z_bottom,
+            color=color,
+            alpha=1.0,
+            edgecolor="none",
+        )  # 下面
+    except ValueError:
+        pass
 
 
 def draw_cylinder3d_by_trans(
