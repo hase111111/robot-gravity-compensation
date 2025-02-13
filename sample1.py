@@ -27,38 +27,59 @@ def reset_table(ax: Axes3D) -> None:
 
 def make_robot_param() -> gb.RobotParam:
     """Create a robot parameter."""
+    # waist_y_joint -2.09 ~ 2.09
     ret = gb.RobotParam()
-    ret.add_link(gb.LinkParam(a=0.134202, alpha=np.pi / 2, d=0.251871))
+    ret.add_link(
+        gb.LinkParam(
+            a=0.134202, alpha=np.pi / 2, d=0.251871, min_val=-2.09, max_val=2.09
+        )
+    )
     ret.add_link(
         gb.LinkParam(
             a=0.0, alpha=np.pi / 2, d=0.0, min_val=np.pi / 2, max_val=np.pi / 2
         )
     )
-    ret.add_link(gb.LinkParam(a=0.027177, alpha=-np.pi / 2, d=0.064702))
-    ret.add_link(gb.LinkParam(a=-0.0455, alpha=np.pi / 2, d=0.0))
+    # l_shoulder_pitch_joint -1.55 ~ 0.29
+    ret.add_link(
+        gb.LinkParam(
+            a=0.027177, alpha=-np.pi / 2, d=0.064702, min_val=-1.55, max_val=0.29
+        )
+    )
+    # l_shoulder_roll_joint -0.08 ~ 1.57
+    ret.add_link(
+        gb.LinkParam(a=-0.0455, alpha=np.pi / 2, d=0.0, min_val=-0.08, max_val=1.57)
+    )
     ret.add_link(
         gb.LinkParam(
             a=0.0, alpha=np.pi / 2, d=0.0, min_val=np.pi / 2, max_val=np.pi / 2
         )
     )
-    ret.add_link(gb.LinkParam(a=0.0, alpha=-np.pi / 2, d=-0.2085))
+    # l_shoulder_yaw_joint -1.57 ~ 1.57
+    ret.add_link(
+        gb.LinkParam(a=0.0, alpha=-np.pi / 2, d=-0.2085, min_val=-1.57, max_val=1.57)
+    )
     ret.add_link(
         gb.LinkParam(a=0.0, alpha=0.0, d=0.0, min_val=np.pi / 2, max_val=np.pi / 2)
     )
-    ret.add_link(gb.LinkParam(a=0.07, alpha=0.0, d=0.0))
-    ret.add_link(gb.LinkParam(a=0.1095, alpha=0.0, d=0.0))
+    # l_elbow  -1.50 ~ 0 合わせて3.00
+    ret.add_link(gb.LinkParam(a=0.07, alpha=0.0, d=0.0, min_val=-1.50, max_val=0.0))
+    ret.add_link(gb.LinkParam(a=0.1095, alpha=0.0, d=0.0, min_val=-1.50, max_val=0.0))
     ret.add_link(
         gb.LinkParam(
             a=0.0, alpha=np.pi / 2, d=0.0, min_val=np.pi / 2, max_val=np.pi / 2
         )
     )
-    ret.add_link(gb.LinkParam(a=0.0, alpha=np.pi / 2, d=0.124))
+    # l_wrist_yaw_joint -1.57 ~ 1.57
+    ret.add_link(
+        gb.LinkParam(a=0.0, alpha=np.pi / 2, d=0.124, min_val=-1.57, max_val=1.57)
+    )
     ret.add_link(
         gb.LinkParam(
             a=0.0, alpha=-np.pi / 2, d=0.0, min_val=np.pi / 2, max_val=np.pi / 2
         )
     )
-    ret.add_link(gb.LinkParam(a=0.15, alpha=0.0, d=0.0))
+    # l_wrist_roll_joint -1.57 ~ 0.34
+    ret.add_link(gb.LinkParam(a=0.15, alpha=0.0, d=0.0, min_val=-1.57, max_val=0.34))
 
     return ret
 

@@ -47,9 +47,11 @@ class LinkParam:
             theta = _type_checked(theta, float)
 
         if not self._min_val <= theta <= self._max_val:
-            raise ValueError(
-                f"theta should be in range [{self._min_val}, {self._max_val}]"
-            )
+            # clamp theta to the range
+            theta = np.clip(theta, self._min_val, self._max_val)
+            # raise ValueError(
+            #     f"theta should be in range [{self._min_val}, {self._max_val}]"
+            # )
 
         ans = (
             get_rot4x4("z", theta)

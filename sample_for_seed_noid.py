@@ -13,56 +13,75 @@ import gravibot as gb
 
 def make_robot_param() -> gb.RobotParam:
     """ロボットのパラメータを作成"""
-    m = -np.pi * 2
-    M = np.pi * 2
+    # waist_y_joint -2.09 ~ 2.09
     ret = gb.RobotParam()
-    ret.add_link(gb.LinkParam(a=0.134202, alpha=np.pi / 2, d=0.251871))
+    ret.add_link(
+        gb.LinkParam(
+            a=0.134202, alpha=np.pi / 2, d=0.251871, min_val=-2.09, max_val=2.09
+        )
+    )
     ret.add_link(
         gb.LinkParam(
             a=0.0, alpha=np.pi / 2, d=0.0, min_val=np.pi / 2, max_val=np.pi / 2
         )
     )
-    ret.add_link(gb.LinkParam(a=0.027177, alpha=-np.pi / 2, d=0.064702))
-    ret.add_link(gb.LinkParam(a=-0.0455, alpha=np.pi / 2, d=0.0))
+    # l_shoulder_pitch_joint -1.55 ~ 0.29
+    ret.add_link(
+        gb.LinkParam(
+            a=0.027177, alpha=-np.pi / 2, d=0.064702, min_val=-1.55, max_val=0.29
+        )
+    )
+    # l_shoulder_roll_joint -0.08 ~ 1.57
+    ret.add_link(
+        gb.LinkParam(a=-0.0455, alpha=np.pi / 2, d=0.0, min_val=-0.08, max_val=1.57)
+    )
     ret.add_link(
         gb.LinkParam(
             a=0.0, alpha=np.pi / 2, d=0.0, min_val=np.pi / 2, max_val=np.pi / 2
         )
     )
-    ret.add_link(gb.LinkParam(a=0.0, alpha=-np.pi / 2, d=-0.2085))
+    # l_shoulder_yaw_joint -1.57 ~ 1.57
+    ret.add_link(
+        gb.LinkParam(a=0.0, alpha=-np.pi / 2, d=-0.2085, min_val=-1.57, max_val=1.57)
+    )
     ret.add_link(
         gb.LinkParam(a=0.0, alpha=0.0, d=0.0, min_val=np.pi / 2, max_val=np.pi / 2)
     )
-    ret.add_link(gb.LinkParam(a=0.07, alpha=0.0, d=0.0))
-    ret.add_link(gb.LinkParam(a=0.1095, alpha=0.0, d=0.0))
+    # l_elbow  -1.50 ~ 0 合わせて3.00
+    ret.add_link(gb.LinkParam(a=0.07, alpha=0.0, d=0.0, min_val=-1.50, max_val=0.0))
+    ret.add_link(gb.LinkParam(a=0.1095, alpha=0.0, d=0.0, min_val=-1.50, max_val=0.0))
     ret.add_link(
         gb.LinkParam(
             a=0.0, alpha=np.pi / 2, d=0.0, min_val=np.pi / 2, max_val=np.pi / 2
         )
     )
-    ret.add_link(gb.LinkParam(a=0.0, alpha=np.pi / 2, d=0.124))
+    # l_wrist_yaw_joint -1.57 ~ 1.57
+    ret.add_link(
+        gb.LinkParam(a=0.0, alpha=np.pi / 2, d=0.124, min_val=-1.57, max_val=1.57)
+    )
     ret.add_link(
         gb.LinkParam(
             a=0.0, alpha=-np.pi / 2, d=0.0, min_val=np.pi / 2, max_val=np.pi / 2
         )
     )
-    ret.add_link(gb.LinkParam(a=0.15, alpha=0.0, d=0.0))
+    # l_wrist_roll_joint -1.57 ~ 0.34
+    ret.add_link(gb.LinkParam(a=0.15, alpha=0.0, d=0.0, min_val=-1.57, max_val=0.34))
 
     return ret
 
 
 robot = gb.Robot(make_robot_param())
-LINK_NUM = robot.get_link_num()
+LINK_NUM = robot.get_moveable_link_num()
 
 # 初期の関節角度
-INITIAL_THETA = [-cs.pi / 3.0, cs.pi / 5.0, -cs.pi / 5.0 * 2, 0.0]  # 変更可能
+INITIAL_THETA = [0.0] * LINK_NUM
 INITIAL_DTHETA = [0.0] * LINK_NUM
 INITIAL_DDTHETA = [0.0] * LINK_NUM
 if LINK_NUM != len(INITIAL_THETA):
     raise ValueError("LINK_NUM must be equal to len(INITIAL_THETA)")
 
 # 目標の関節角度
-TARGET_THETA = [cs.pi / 3.0, cs.pi / 5.0, -cs.pi / 5.0 * 2, 0.0]
+TARGET_THETA = [0.0, -0.875, 0.463, -0.606, -0.262, -0.262, -0.682, -1.331]
 TARGET_DTHETA = [0.0] * LINK_NUM
 TARGET_DDTHETA = [0.0] * LINK_NUM
 if LINK_NUM != len(TARGET_THETA):
@@ -70,9 +89,9 @@ if LINK_NUM != len(TARGET_THETA):
 
 
 # 作業空間
-WORKSPACE_X = [-30.0, 30.0]
-WORKSPACE_Y = [-10.0, 10.0]
-WORKSPACE_Z = [0.0, 10.0]
+WORKSPACE_X = [-1.0, 1.0]
+WORKSPACE_Y = [-1.0, 1.0]
+WORKSPACE_Z = [0.0, 2.0]
 GRID_SIZE = 10.0
 
 # 作業空間をグリッドで分割し，危険値を設定(0:安全, 1:危険)
@@ -82,9 +101,9 @@ GRID_Z = int((WORKSPACE_Z[1] - WORKSPACE_Z[0]) / GRID_SIZE)
 
 workspace_grid = np.zeros((GRID_X, GRID_Y, GRID_Z))
 
-WARNING_X = [20.0, 30.0]
-WARNING_Y = [-20.0, 20.0]
-WARNING_Z = [0.0, 30.0]
+WARNING_X = [0.0, 0.0]
+WARNING_Y = [-0.0, 0.0]
+WARNING_Z = [0.0, 0.0]
 
 for i_ in range(GRID_X):
     for j_ in range(GRID_Y):
@@ -125,7 +144,7 @@ grid_lookup = cs.Function("grid_lookup", [x, y, z], [grid_value])
 
 
 # 時間のリスト
-END_TIME = 5.0
+END_TIME = 3.0
 TIME_STEP = 0.1
 TIME_NUM = int(END_TIME / TIME_STEP)
 
@@ -278,9 +297,7 @@ def main():
     ddtheta_last = get_end_data(ddtheta_mx, TIME_NUM - 2, LINK_NUM)
 
     # コスト関数を定義
-    cost = 0.00001 * smooth_objective(ddtheta_mx) + constraints_obstacle(
-        theta_mx, robot
-    )
+    cost = smooth_objective(ddtheta_mx)  # + constraints_obstacle(theta_mx, robot)
 
     # 制約条件
     constraints = cs.vertcat(
@@ -331,11 +348,11 @@ def main():
     fig = plt.figure()
     ax: Axes3D = fig.add_subplot(111, projection="3d")  # type: ignore
 
-    ax.set_xlim(-25, 25)
+    ax.set_xlim(-1, 1)
     ax.set_xlabel("X [m]")
-    ax.set_ylim(-25, 25)
+    ax.set_ylim(-1, 1)
     ax.set_ylabel("Y [m]")
-    ax.set_zlim(0, 50)
+    ax.set_zlim(0, 2)
     ax.set_zlabel("Z [m]")
     ax.set_aspect("equal")
 
@@ -356,15 +373,15 @@ def main():
     fig = plt.figure()
     ax: Axes3D = fig.add_subplot(111, projection="3d")  # type: ignore
 
-    for _ in range(1):
+    for _ in range(3):
         for i in range(TIME_NUM):
             ax.clear()
 
-            ax.set_xlim(-25, 25)
+            ax.set_xlim(-1, 1)
             ax.set_xlabel("X [m]")
-            ax.set_ylim(-25, 25)
+            ax.set_ylim(-1, 1)
             ax.set_ylabel("Y [m]")
-            ax.set_zlim(0, 50)
+            ax.set_zlim(0, 2)
             ax.set_zlabel("Z [m]")
             ax.set_aspect("equal")
 

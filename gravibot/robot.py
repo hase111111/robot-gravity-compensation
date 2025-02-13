@@ -106,6 +106,13 @@ class Robot:
         """get the number of links in the robot"""
         return self._param.get_link_num()
 
+    def get_moveable_link_num(self) -> int:
+        """get the number of movable links in the robot"""
+        return sum(
+            not self._param.get_link_param(i).is_fixed()
+            for i in range(self._param.get_link_num())
+        )
+
     def draw(self, ax: Axes3D):
         """draw the robot"""
         for i in range(self._param.get_link_num() - 1):
