@@ -117,14 +117,14 @@ for i_ in range(GRID_X):
 
 
 # CasADiのMX変数を定義 (ロボットの位置 x, y, z)
-x = cs.MX.sym("x")
-y = cs.MX.sym("y")
-z = cs.MX.sym("z")
+x_cs = cs.MX.sym("x")
+y_cs = cs.MX.sym("y")
+z_cs = cs.MX.sym("z")
 
 # インデックスの計算
-ix = cs.floor((x - WORKSPACE_X[0]) / GRID_SIZE)
-iy = cs.floor((y - WORKSPACE_Y[0]) / GRID_SIZE)
-iz = cs.floor((z - WORKSPACE_Z[0]) / GRID_SIZE)
+ix = cs.floor((x_cs - WORKSPACE_X[0]) / GRID_SIZE)
+iy = cs.floor((y_cs - WORKSPACE_Y[0]) / GRID_SIZE)
+iz = cs.floor((z_cs - WORKSPACE_Z[0]) / GRID_SIZE)
 
 # インデックスの範囲制限
 ix = cs.if_else(ix < 0, 0, cs.if_else(ix >= GRID_X, GRID_X - 1, ix))
@@ -140,7 +140,7 @@ for i_ in range(GRID_X):
             grid_value = cs.if_else(condition, workspace_grid[i_, j_, k_], grid_value)
 
 # CasADiの関数として定義
-grid_lookup = cs.Function("grid_lookup", [x, y, z], [grid_value])
+grid_lookup = cs.Function("grid_lookup", [x_cs, y_cs, z_cs], [grid_value])
 
 
 # 時間のリスト
@@ -341,6 +341,8 @@ def main():
 
     # 最適化結果を取得
     theta_opt = get_result(opt_result["x"], TIME_NUM, LINK_NUM)
+    # epsより小さい値を0にする
+    theta_opt = np.where(np.abs(theta_opt) < 1e-6, 0.0, theta_opt)
     print(f"theta_opt = {theta_opt}")
     print(f"opt_result = {opt_result['f']}")
 
