@@ -142,15 +142,15 @@ iy = cs.if_else(iy < 0, 0, cs.if_else(iy >= GRID_Y, GRID_Y - 1, iy))
 iz = cs.if_else(iz < 0, 0, cs.if_else(iz >= GRID_Z, GRID_Z - 1, iz))
 
 # グリッド値の取得（if_elseを使って手動で探索）
-grid_value = 0
+GRID_VALUE = 0
 for i_ in range(GRID_X):
     for j_ in range(GRID_Y):
         for k_ in range(GRID_Z):
             condition = cs.logic_and(cs.logic_and(ix == i_, iy == j_), iz == k_)
-            grid_value = cs.if_else(condition, workspace_grid[i_, j_, k_], grid_value)
+            GRID_VALUE = cs.if_else(condition, workspace_grid[i_, j_, k_], GRID_VALUE)
 
 # CasADiの関数として定義
-grid_lookup = cs.Function("grid_lookup", [x_cs, y_cs, z_cs], [grid_value])
+grid_lookup = cs.Function("grid_lookup", [x_cs, y_cs, z_cs], [GRID_VALUE])
 
 
 # 時間のリスト
