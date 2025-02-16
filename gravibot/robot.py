@@ -146,7 +146,7 @@ class Robot:
 
             _renderer.draw_cylinder3d_by_trans(
                 ax,
-                self._link_radius,
+                self._link_radius * 1.2,
                 self._link_radius * 3.5,
                 self.get_joint_trans(i),
                 color="blue",

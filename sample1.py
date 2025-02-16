@@ -141,7 +141,7 @@ def draw_table(ax: Axes3D, robot: gb.Robot, end_effecter: gb.EndEffecter) -> Non
 
 def main():
     """Main function to visualize a robot and its end effecter with sliders."""
-    robot = gb.Robot(make_robot_param(), origin=[0.0, 0.0, 0.0])
+    robot = gb.Robot(make_robot_param(), origin=[0.0, 0.0, 0.5])
     for i in range(robot.get_link_num()):
         robot.set_theta(i, 0.0)
     endeffecter = gb.EndEffecter([3.0, 0.0, 0.0])
@@ -158,10 +158,7 @@ def main():
     if draw_endeffecter:
         endeffecter.draw(ax, robot.get_joint_trans(2))
 
-    try:
-        draw_table(table, robot, endeffecter)
-    except:  # type: ignore
-        pass
+    draw_table(table, robot, endeffecter)
 
     # スライダーの追加
     sliders = add_slider(0.20, robot.get_link_num())
@@ -177,10 +174,7 @@ def main():
         if draw_endeffecter:
             endeffecter.draw(ax, robot.get_joint_trans(2))
 
-        try:
-            draw_table(table, robot, endeffecter)
-        except:  # type: ignore
-            pass
+        draw_table(table, robot, endeffecter)
 
         plt.draw()
 

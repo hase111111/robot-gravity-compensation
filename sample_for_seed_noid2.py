@@ -286,7 +286,7 @@ def draw_time_graph(angle: np.ndarray, time_: np.ndarray) -> None:
     print(f"v.shape = {angle.shape}")
     for i in range(LINK_NUM):
         ax1.plot(time_, angle[i])
-    ax1.set_ylabel("theta [rad]")
+    ax1.set_ylabel("theta [deg]")
     ax1.set_title("theta")
 
     # 微分して，角速度を求める
@@ -294,7 +294,7 @@ def draw_time_graph(angle: np.ndarray, time_: np.ndarray) -> None:
     ax2 = fig.add_subplot(312)
     for i in range(LINK_NUM):
         ax2.plot(time_[:-1], d[i])
-    ax2.set_ylabel("dtheta [rad/s]")
+    ax2.set_ylabel("dtheta [deg/s]")
     ax2.set_title("dtheta")
 
     # さらに微分して，角加速度を求める
@@ -302,7 +302,7 @@ def draw_time_graph(angle: np.ndarray, time_: np.ndarray) -> None:
     ax3 = fig.add_subplot(313)
     for i in range(LINK_NUM):
         ax3.plot(time_[:-2], dd[i])
-    ax3.set_ylabel("ddtheta [rad/s^2]")
+    ax3.set_ylabel("ddtheta [deg/s^2]")
     ax3.set_title("ddtheta")
 
     plt.show()
