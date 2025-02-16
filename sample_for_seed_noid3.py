@@ -52,12 +52,12 @@ def make_robot_param() -> gb.RobotParam:
     ret.add_link(gb.LinkParam(a=0.1095, alpha=0.0, d=0.0, min_val=-1.50, max_val=0.0))
     ret.add_link(
         gb.LinkParam(
-            a=0.0, alpha=np.pi / 2, d=0.0, min_val=np.pi / 2, max_val=np.pi / 2
+            a=0.0, alpha=-np.pi / 2, d=0.0, min_val=np.pi / 2, max_val=np.pi / 2
         )
     )
     # l_wrist_yaw_joint -1.57 ~ 1.57
     ret.add_link(
-        gb.LinkParam(a=0.0, alpha=np.pi / 2, d=0.124, min_val=-1.57, max_val=1.57)
+        gb.LinkParam(a=0.0, alpha=np.pi / 2, d=-0.124, min_val=-1.57, max_val=1.57)
     )
     ret.add_link(
         gb.LinkParam(
@@ -65,7 +65,7 @@ def make_robot_param() -> gb.RobotParam:
         )
     )
     # l_wrist_roll_joint -1.57 ~ 0.34
-    ret.add_link(gb.LinkParam(a=0.15, alpha=0.0, d=0.0, min_val=-1.57, max_val=0.34))
+    ret.add_link(gb.LinkParam(a=-0.15, alpha=0.0, d=0.0, min_val=-1.57, max_val=0.34))
 
     return ret
 
@@ -74,19 +74,29 @@ robot = gb.Robot(make_robot_param())
 LINK_NUM = robot.get_moveable_link_num()
 
 # 初期の関節角度
-INITIAL_THETA = [0.0] * LINK_NUM
+INITIAL_THETA = [-np.pi / 2.7, -1.029, 0.129, -1.559, -0.05, -0.05, 0.0, -0.30]
 INITIAL_DTHETA = [0.0] * LINK_NUM
 INITIAL_DDTHETA = [0.0] * LINK_NUM
 if LINK_NUM != len(INITIAL_THETA):
     raise ValueError("LINK_NUM must be equal to len(INITIAL_THETA)")
 
+for i_ in range(LINK_NUM):
+    robot.set_theta(i_, INITIAL_THETA[i_])
+INITIAL_POS = robot.get_joint_pos(robot.get_link_num() - 1)
+print(f"INITIAL_POS = {INITIAL_POS}")
+
 # 目標の関節角度
-TARGET_THETA = [0.0, -0.875, 0.463, -0.606, -0.262, -0.262, -0.682, -1.331]
+TARGET_THETA = [-np.pi / 2.7, -0.95, 0.129, -1.559, -0.05, -0.05, 0.0, -0.20]
 TARGET_DTHETA = [0.0] * LINK_NUM
 TARGET_DDTHETA = [0.0] * LINK_NUM
 if LINK_NUM != len(TARGET_THETA):
     raise ValueError("LINK_NUM must be equal to len(TARGET_THETA)")
 
+for i_ in range(LINK_NUM):
+    robot.set_theta(i_, TARGET_THETA[i_])
+TARGET_POS = robot.get_joint_pos(robot.get_link_num() - 1)
+print(f"TARGET_POS = {TARGET_POS}")
+print(f"diff = {TARGET_POS - INITIAL_POS}")
 
 # 作業空間
 WORKSPACE_X = [-1.0, 1.0]
@@ -144,8 +154,8 @@ grid_lookup = cs.Function("grid_lookup", [x_cs, y_cs, z_cs], [grid_value])
 
 
 # 時間のリスト
-END_TIME = 3.0
-TIME_STEP = 0.1
+END_TIME = 10.0
+TIME_STEP = 0.2
 TIME_NUM = int(END_TIME / TIME_STEP)
 
 
@@ -216,6 +226,20 @@ def constraints_obstacle(theta: cs.MX, robot_: gb.Robot) -> cs.MX:
                 center = pos + (pos - past_pos) * 3 / 4
                 ret += grid_lookup(center[0], center[1], center[2])
             past_pos = pos
+
+    return ret
+
+
+def clamp_result(theta: np.ndarray, robot_: gb.Robot) -> np.ndarray:
+    """結果を制約に合わせて修正"""
+    ret = theta.copy()
+    for i in range(TIME_NUM):
+        for j in range(LINK_NUM):
+            min_, max_ = robot_.get_moveable_link_bounds(j)
+            if ret[j][i] < min_:
+                ret[j][i] = min_
+            if ret[j][i] > max_:
+                ret[j][i] = max_
 
     return ret
 
@@ -324,7 +348,8 @@ def main():
     solver = cs.nlpsol("solver", "ipopt", nlp)
 
     # 初期値を設定
-    theta_init = [np.random.uniform(-np.pi, np.pi)] * (LINK_NUM * TIME_NUM)
+    theta_init = [np.random.uniform(-np.pi / 2, np.pi / 2)] * (LINK_NUM * TIME_NUM)
+    # theta_init = [0.0] * (LINK_NUM * TIME_NUM)
 
     # 初期変位と，目標変位を設定
     for i in range(LINK_NUM):
@@ -333,8 +358,8 @@ def main():
 
     opt_result = solver(
         x0=theta_init,
-        lbx=-np.pi,
-        ubx=np.pi,
+        lbx=-np.pi / 2,
+        ubx=np.pi / 2,
         lbg=-0.0,
         ubg=0.0,
     )
@@ -343,7 +368,13 @@ def main():
     theta_opt = get_result(opt_result["x"], TIME_NUM, LINK_NUM)
     # epsより小さい値を0にする
     theta_opt = np.where(np.abs(theta_opt) < 1e-6, 0.0, theta_opt)
-    print(f"theta_opt = {theta_opt}")
+    theta_opt = clamp_result(theta_opt, robot)
+    res_str = np.array2string(
+        theta_opt,
+        separator=", ",
+        formatter={"float_kind": "{: .4f}".format},
+    )
+    print(f"theta_opt = {res_str}")
     print(f"opt_result = {opt_result['f']}")
 
     # 図に描画
@@ -395,39 +426,6 @@ def main():
             plt.pause(0.1)
 
     plt.show()
-
-    # # 関節空間の軌跡を描画，縦軸がangle1,横軸がangle2,高さがangle3
-    # fig = plt.figure()
-    # ax: Axes3D = fig.add_subplot(111, projection="3d")
-
-    # for i in range(TIME_NUM):
-    #     ax.scatter(theta_opt[0][i], theta_opt[1][i], theta_opt[2][i])
-
-    # # 全域に対して，障害物と接触する点に赤い点を描画
-    # DIV = 15
-    # for i in range(DIV):
-    #     for j in range(DIV):
-    #         for k in range(DIV):
-    #             theta = [
-    #                 -np.pi + np.pi * 2 * i / DIV,
-    #                 -np.pi + np.pi * 2 * j / DIV,
-    #                 -np.pi + np.pi * 2 * k / DIV,
-    #             ]
-    #             for l in range(LINK_NUM):
-    #                 param.set_val(l, theta[l])
-    #             pos = robot.get_joint_pos(LINK_NUM - 1)
-    #             for m in range(OBSTACLE_NUM):
-    #                 diff = pos - OBSTACLE_POS[m]
-    #                 dist = np.sqrt(diff[0] ** 2 + diff[1] ** 2 + diff[2] ** 2)
-    #                 if dist < OBSTACLE_RADIUS[m]:
-    #                     ax.scatter(theta[0], theta[1], theta[2], color="red", s=30)
-
-    # ax.set_xlabel("angle1 [rad]")
-    # ax.set_ylabel("angle2 [rad]")
-    # ax.set_zlabel("angle3 [rad]")
-    # ax.set_title("Joint Space")
-
-    # plt.show()
 
 
 if __name__ == "__main__":

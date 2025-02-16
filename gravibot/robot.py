@@ -71,7 +71,7 @@ class Robot:
 
         ans = _math.get_trans4x4_casadi(*self._origin)
         t_cnt = 0
-        for j in range(i + 1):
+        for j in range(self.get_link_num()):
             if self._param.get_link_param(j).is_fixed():
                 ans = ans @ self._param.get_link_param(j).get_trans_mat_casadi(
                     self._param.get_link_param(j).min_val
@@ -81,6 +81,9 @@ class Robot:
                     theta_array_casadi[t_cnt]
                 )
                 t_cnt += 1
+
+            if i == t_cnt:
+                break
 
         return ans
 
@@ -112,6 +115,23 @@ class Robot:
             not self._param.get_link_param(i).is_fixed()
             for i in range(self._param.get_link_num())
         )
+
+    def get_moveable_link_bounds(self, ind) -> Tuple[float, float]:
+        """get the bounds of the i-th movable link"""
+        if not 0 <= ind < self.get_moveable_link_num():
+            raise ValueError(f"ind must be in range [0, num_moveable_links{ind}]")
+
+        cnt = 0
+        for i in range(self._param.get_link_num()):
+            if not self._param.get_link_param(i).is_fixed():
+                if cnt == ind:
+                    return (
+                        self._param.get_link_param(i).min_val,
+                        self._param.get_link_param(i).max_val,
+                    )
+                cnt += 1
+
+        raise ValueError("ind is out of range")
 
     def draw(self, ax: Axes3D):
         """draw the robot"""

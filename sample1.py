@@ -66,12 +66,12 @@ def make_robot_param() -> gb.RobotParam:
     ret.add_link(gb.LinkParam(a=0.1095, alpha=0.0, d=0.0, min_val=-1.50, max_val=0.0))
     ret.add_link(
         gb.LinkParam(
-            a=0.0, alpha=np.pi / 2, d=0.0, min_val=np.pi / 2, max_val=np.pi / 2
+            a=0.0, alpha=-np.pi / 2, d=0.0, min_val=np.pi / 2, max_val=np.pi / 2
         )
     )
     # l_wrist_yaw_joint -1.57 ~ 1.57
     ret.add_link(
-        gb.LinkParam(a=0.0, alpha=np.pi / 2, d=0.124, min_val=-1.57, max_val=1.57)
+        gb.LinkParam(a=0.0, alpha=np.pi / 2, d=-0.124, min_val=-1.57, max_val=1.57)
     )
     ret.add_link(
         gb.LinkParam(
@@ -79,7 +79,7 @@ def make_robot_param() -> gb.RobotParam:
         )
     )
     # l_wrist_roll_joint -1.57 ~ 0.34
-    ret.add_link(gb.LinkParam(a=0.15, alpha=0.0, d=0.0, min_val=-1.57, max_val=0.34))
+    ret.add_link(gb.LinkParam(a=-0.15, alpha=0.0, d=0.0, min_val=-1.57, max_val=0.34))
 
     return ret
 
@@ -160,7 +160,7 @@ def main():
 
     try:
         draw_table(table, robot, endeffecter)
-    except:
+    except:  # type: ignore
         pass
 
     # スライダーの追加
@@ -179,7 +179,7 @@ def main():
 
         try:
             draw_table(table, robot, endeffecter)
-        except:
+        except:  # type: ignore
             pass
 
         plt.draw()
