@@ -74,7 +74,7 @@ robot = gb.Robot(make_robot_param())
 LINK_NUM = robot.get_moveable_link_num()
 
 # 初期の関節角度
-INITIAL_THETA = [-np.pi / 2.7, -1.029, 0.129, -1.559, -0.05, -0.05, 0.0, -0.25]
+INITIAL_THETA = [-np.pi / 2.7, -1.029, 0.129, -1.559, -0.05, -0.05, 0.0, -0.30]
 INITIAL_DTHETA = [0.0] * LINK_NUM
 INITIAL_DDTHETA = [0.0] * LINK_NUM
 if LINK_NUM != len(INITIAL_THETA):
@@ -85,7 +85,7 @@ for i in range(LINK_NUM):
 INITIAL_POS = robot.get_joint_pos(robot.get_link_num() - 1)
 print(f"INITIAL_POS = {INITIAL_POS}")
 
-TARGET_POS = INITIAL_POS - np.array([0.0, 0.0, 0.0001])
+TARGET_POS = INITIAL_POS - np.array([-0.05, -0.05, 0.0])
 
 
 def main():
@@ -106,9 +106,9 @@ def main():
 
     pos = robot.get_joint_pos_casadi(LINK_NUM - 1, theta_mx)
 
-    cost = 100 * cs.sumsqr(pos - TARGET_POS) + cs.sumsqr(
-        theta_mx - np.array(INITIAL_THETA)
-    )
+    cost = cs.sumsqr(
+        pos - TARGET_POS
+    )  # + cs.sumsqr(theta_mx - np.array(INITIAL_THETA))
 
     # 最適化問題を定義
     nlp = {
@@ -121,10 +121,9 @@ def main():
     solver = cs.nlpsol("solver", "ipopt", nlp)
 
     # 初期値を設定
-    theta_init = np.array(INITIAL_THETA)
-
-    # ほんのすこし，乱数で初期値をずらす
-    theta_init += np.random.rand(LINK_NUM) * 1.0 - 0.5
+    # theta_init = np.array(INITIAL_THETA)
+    # 乱数で初期値を設定
+    theta_init = np.random.uniform(-np.pi / 2, np.pi / 2, LINK_NUM)
 
     opt_result = solver(
         x0=theta_init,

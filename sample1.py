@@ -100,7 +100,7 @@ def draw_table(ax: Axes3D, robot: gb.Robot, end_effecter: gb.EndEffecter) -> Non
     """Draw a table to show the robot's data."""
 
     # ロボットの手先の位置を取得
-    pos = robot.get_joint_pos(2)
+    pos = robot.get_joint_pos(robot.get_link_num() - 1)
     coord = gb.conv_trans2rot(robot.get_joint_trans(2))
     com_pos = gb.make_pos_vector(
         end_effecter.com_pos[2], end_effecter.com_pos[1], end_effecter.com_pos[0]

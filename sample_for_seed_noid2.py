@@ -87,7 +87,8 @@ INITIAL_POS = robot.get_joint_pos(robot.get_link_num() - 1)
 print(f"INITIAL_POS = {INITIAL_POS}")
 
 # 目標の関節角度
-TARGET_THETA = [-np.pi / 2.7, -1.029, 0.129, -1.559, -0.05, -0.05, 0.0, -0.30]
+TARGET_THETA = [-np.pi / 2.7, -1.029, 0.129, -1.559, -0.05, -0.05, 0.0, -0.60]
+# TARGET_THETA = [-1.499, -0.797, 0.273, -1.556, 0.01, 0.01, 0.0, -0.3]
 TARGET_DTHETA = [0.0] * LINK_NUM
 TARGET_DDTHETA = [0.0] * LINK_NUM
 if LINK_NUM != len(TARGET_THETA):

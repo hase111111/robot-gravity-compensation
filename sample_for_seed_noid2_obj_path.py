@@ -70,7 +70,7 @@ def make_robot_param() -> gb.RobotParam:
     return ret
 
 
-origin = [0.0, 0.0, 0.5]
+origin = [0.0, 0.0, 0.96]
 robot = gb.Robot(make_robot_param(), origin=origin)  # type: ignore
 LINK_NUM = robot.get_moveable_link_num()
 
@@ -87,7 +87,7 @@ INITIAL_POS = robot.get_joint_pos(robot.get_link_num() - 1)
 print(f"INITIAL_POS = {INITIAL_POS}")
 
 # 目標の関節角度
-TARGET_THETA = [-np.pi / 2.7, -1.029, 0.129, -1.559, -0.05, -0.05, 0.0, -0.30]
+TARGET_THETA = [-np.pi / 2.7, -1.029, 0.129, -1.559, -0.05, -0.05, 0.0, -0.60]
 TARGET_DTHETA = [0.0] * LINK_NUM
 TARGET_DDTHETA = [0.0] * LINK_NUM
 if LINK_NUM != len(TARGET_THETA):
@@ -101,8 +101,8 @@ print(f"TARGET_POS = {TARGET_POS}")
 # 作業空間
 WORKSPACE_X = [-0.5, 0.5]
 WORKSPACE_Y = [-1.0, 0.0]
-WORKSPACE_Z = [0.5, 1.5]
-GRID_SIZE = 0.05
+WORKSPACE_Z = [0.0, 1.0]
+GRID_SIZE = 0.1
 
 # 作業空間をグリッドで分割し，危険値を設定(0:安全, 1:危険)
 GRID_X = int((WORKSPACE_X[1] - WORKSPACE_X[0]) / GRID_SIZE)
@@ -320,8 +320,15 @@ def main():
     ddtheta_first = get_start_data(ddtheta_mx, TIME_NUM - 2, LINK_NUM)
     ddtheta_last = get_end_data(ddtheta_mx, TIME_NUM - 2, LINK_NUM)
 
+    # 中間点の角度を求める
+    theta_center = cs.vertcat()
+    for i in range(LINK_NUM):
+        theta_center = cs.vertcat(theta_center, theta_mx[i * TIME_NUM + TIME_NUM // 2])
+
+    theta_relay_point = [0.3, 0.0, 0.0, 0.0, -1.0, -1.0, 0.0, 0.0]
+
     # コスト関数を定義
-    cost = smooth_objective(ddtheta_mx) + constraints_obstacle(theta_mx, robot)
+    cost = smooth_objective(ddtheta_mx)  # + constraints_obstacle(theta_mx, robot)
 
     # 制約条件
     constraints = cs.vertcat(
@@ -331,6 +338,7 @@ def main():
         dtheta_last - TARGET_DTHETA,
         ddtheta_first - INITIAL_DDTHETA,
         ddtheta_last - TARGET_DDTHETA,
+        theta_center - cs.vertcat(*theta_relay_point),
     )
 
     print(
@@ -350,15 +358,6 @@ def main():
     # 初期値を設定
     theta_init = [np.random.uniform(-np.pi / 2, np.pi / 2)] * (LINK_NUM * TIME_NUM)
     # theta_init = [0.0] * (LINK_NUM * TIME_NUM)
-    theta_relay_point = [-1.274, 0.0, 0.0, 0.0, -1.33, -1.33, 0.0, 0.0, 0.0]
-    for i in range(LINK_NUM):
-        for j in range(TIME_NUM):
-            theta_init[i * TIME_NUM + j] = theta_relay_point[i]
-
-    # 初期変位と，目標変位を設定
-    # for i in range(LINK_NUM):
-    #     theta_init[i * TIME_NUM] = INITIAL_THETA[i]
-    #     theta_init[i * TIME_NUM + TIME_NUM - 1] = TARGET_THETA[i]
 
     opt_result = solver(
         x0=theta_init,
