@@ -421,39 +421,6 @@ def main():
 
     plt.show()
 
-    # # 関節空間の軌跡を描画，縦軸がangle1,横軸がangle2,高さがangle3
-    # fig = plt.figure()
-    # ax: Axes3D = fig.add_subplot(111, projection="3d")
-
-    # for i in range(TIME_NUM):
-    #     ax.scatter(theta_opt[0][i], theta_opt[1][i], theta_opt[2][i])
-
-    # # 全域に対して，障害物と接触する点に赤い点を描画
-    # DIV = 15
-    # for i in range(DIV):
-    #     for j in range(DIV):
-    #         for k in range(DIV):
-    #             theta = [
-    #                 -np.pi + np.pi * 2 * i / DIV,
-    #                 -np.pi + np.pi * 2 * j / DIV,
-    #                 -np.pi + np.pi * 2 * k / DIV,
-    #             ]
-    #             for l in range(LINK_NUM):
-    #                 param.set_val(l, theta[l])
-    #             pos = robot.get_joint_pos(LINK_NUM - 1)
-    #             for m in range(OBSTACLE_NUM):
-    #                 diff = pos - OBSTACLE_POS[m]
-    #                 dist = np.sqrt(diff[0] ** 2 + diff[1] ** 2 + diff[2] ** 2)
-    #                 if dist < OBSTACLE_RADIUS[m]:
-    #                     ax.scatter(theta[0], theta[1], theta[2], color="red", s=30)
-
-    # ax.set_xlabel("angle1 [rad]")
-    # ax.set_ylabel("angle2 [rad]")
-    # ax.set_zlabel("angle3 [rad]")
-    # ax.set_title("Joint Space")
-
-    # plt.show()
-
 
 if __name__ == "__main__":
     main()
