@@ -174,7 +174,7 @@ class KinectFrameData:
             x = [self.data[i * 3], self.data[j * 3]]
             y = [self.data[i * 3 + 1], self.data[j * 3 + 1]]
             z = [self.data[i * 3 + 2], self.data[j * 3 + 2]]
-            ax_.plot(x, y, z, color="green")
+            ax_.plot(x, y, z, color="black")
 
         # 上半身の点は赤色で描画，それ以外は緑色で描画
         for s, i in SKELETON_MAP.items():
@@ -184,14 +184,14 @@ class KinectFrameData:
                     self.data[i * 3],
                     self.data[i * 3 + 1],
                     self.data[i * 3 + 2],
-                    color="red",
+                    color="black",
                 )
             else:
                 ax_.scatter(
                     self.data[i * 3],
                     self.data[i * 3 + 1],
                     self.data[i * 3 + 2],
-                    color="green",
+                    color="black",
                 )
 
 
@@ -361,6 +361,10 @@ if __name__ == "__main__":
     # 作業空間を計算
     sweep_space = compute_sweep_space(data)
 
+    # sweep_spaceの最大値を求める
+    max_val = np.max(sweep_space)
+    print(f"Max value = {max_val}")
+
     # 作業空間を表示
     fig = plt.figure()
     ax: Axes3D = fig.add_subplot(111, projection="3d")
@@ -379,12 +383,12 @@ if __name__ == "__main__":
 
     draw_table(ax)
     robot.draw(ax)
-    data[180].draw(ax)
+    data[300].draw(ax)
 
     # 軸のラベルを設定
-    ax.set_xlabel("X")
-    ax.set_ylabel("Y")
-    ax.set_zlabel("Z")
+    ax.set_xlabel("X [m]")
+    ax.set_ylabel("Y [m]")
+    ax.set_zlabel("Z [m]")
     ax.set_xlim(-1.5, 1.5)
     ax.set_ylim(-1.5, 1.5)
     ax.set_zlim(0, 3.0)
@@ -393,7 +397,7 @@ if __name__ == "__main__":
 
     # アニメーションで表示
     fig = plt.figure()
-    ax: Axes3D = fig.add_subplot(111, projection="3d")
+    ax = fig.add_subplot(111, projection="3d")
 
     # use enumerate
     for i, d in enumerate(data):
@@ -404,9 +408,9 @@ if __name__ == "__main__":
         ax.set_ylim(-1.5, 1.5)
         ax.set_zlim(0, 3.0)
         # 軸のラベルを設定
-        ax.set_xlabel("X")
-        ax.set_ylabel("Y")
-        ax.set_zlabel("Z")
+        ax.set_xlabel("X [m]")
+        ax.set_ylabel("Y [m]")
+        ax.set_zlabel("Z [m]")
         d.draw(ax)
 
         robot.draw(ax)

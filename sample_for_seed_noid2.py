@@ -282,29 +282,43 @@ def draw_obstacle(ax: Axes3D) -> None:
 
 def draw_time_graph(angle: np.ndarray, time_: np.ndarray) -> None:
     """角度，角速度，角加速度と時間のグラフを描画（各関節ごとのデータを全3枚で収める）"""
+    link_names = [
+        "waist_y_joint",
+        "l_shoulder_p_joint",
+        "l_shoulder_r_joint",
+        "l_shoulder_y_joint",
+        "l_elbow_joint",
+        "l_elbow_joint(dummy)",
+        "l_wrist_y_joint",
+        "l_wrist_r_joint",
+    ]
+
     fig = plt.figure()
     ax1 = fig.add_subplot(311)
     print(f"v.shape = {angle.shape}")
     for i in range(LINK_NUM):
         ax1.plot(time_, angle[i])
+    ax1.set_xlabel("time [sec]")
     ax1.set_ylabel("theta [deg]")
-    ax1.set_title("theta")
+
+    # 凡例を追加
+    ax1.legend([f"{link_names[i]}" for i in range(LINK_NUM)], framealpha=0.5)
 
     # 微分して，角速度を求める
     d = np.diff(angle)
     ax2 = fig.add_subplot(312)
     for i in range(LINK_NUM):
         ax2.plot(time_[:-1], d[i])
-    ax2.set_ylabel("dtheta [deg/s]")
-    ax2.set_title("dtheta")
+    ax2.set_xlabel("time [sec]")
+    ax2.set_ylabel("angular velocity [deg/s]")
 
     # さらに微分して，角加速度を求める
     dd = np.diff(d)
     ax3 = fig.add_subplot(313)
     for i in range(LINK_NUM):
         ax3.plot(time_[:-2], dd[i])
-    ax3.set_ylabel("ddtheta [deg/s^2]")
-    ax3.set_title("ddtheta")
+    ax3.set_xlabel("time [sec]")
+    ax3.set_ylabel("angular acceleration [deg/s^2]")
 
     plt.show()
 
