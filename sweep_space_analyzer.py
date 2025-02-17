@@ -305,7 +305,7 @@ def draw_table(ax_: Axes3D):
 WORKSPACE_X = [-0.5, 0.5]
 WORKSPACE_Y = [-1.0, 0.0]
 WORKSPACE_Z = [0.5, 1.5]
-GRID_SIZE = 0.05
+GRID_SIZE = 0.1
 
 
 def compute_sweep_space(data: List[KinectFrameData]):

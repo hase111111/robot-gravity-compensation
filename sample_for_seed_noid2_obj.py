@@ -102,28 +102,25 @@ print(f"TARGET_POS = {TARGET_POS}")
 WORKSPACE_X = [-0.5, 0.5]
 WORKSPACE_Y = [-1.0, 0.0]
 WORKSPACE_Z = [0.5, 1.5]
-GRID_SIZE = 0.05
+GRID_SIZE = 0.1
 
 # 作業空間をグリッドで分割し，危険値を設定(0:安全, 1:危険)
 GRID_X = int((WORKSPACE_X[1] - WORKSPACE_X[0]) / GRID_SIZE)
 GRID_Y = int((WORKSPACE_Y[1] - WORKSPACE_Y[0]) / GRID_SIZE)
 GRID_Z = int((WORKSPACE_Z[1] - WORKSPACE_Z[0]) / GRID_SIZE)
 
+import sweep_space_analyzer as ssa
+
+data = ssa.read_kinect_data(ssa.FILE_NAME, offset=[-0.1, -0.65, 0.75])
+
+# 作業空間を計算
+sweep_space = ssa.compute_sweep_space(data)
 workspace_grid = np.zeros((GRID_X, GRID_Y, GRID_Z))
+workspace_grid = sweep_space
 
 WARNING_X = [-0.1, 0.1]
 WARNING_Y = [-0.75, -0.5]
 WARNING_Z = [0.0, 0.5]
-
-for i_ in range(GRID_X):
-    for j_ in range(GRID_Y):
-        for k_ in range(GRID_Z):
-            if (
-                WARNING_X[0] <= i_ * GRID_SIZE + WORKSPACE_X[0] < WARNING_X[1]
-                and WARNING_Y[0] <= j_ * GRID_SIZE + WORKSPACE_Y[0] < WARNING_Y[1]
-                and WARNING_Z[0] <= k_ * GRID_SIZE + WORKSPACE_Z[0] < WARNING_Z[1]
-            ):
-                workspace_grid[i_, j_, k_] = 1.0
 
 
 # CasADiのMX変数を定義 (ロボットの位置 x, y, z)
@@ -321,7 +318,9 @@ def main():
     ddtheta_last = get_end_data(ddtheta_mx, TIME_NUM - 2, LINK_NUM)
 
     # コスト関数を定義
-    cost = smooth_objective(ddtheta_mx) + constraints_obstacle(theta_mx, robot)
+    cost = 0.00001 * smooth_objective(ddtheta_mx) + constraints_obstacle(
+        theta_mx, robot
+    )
 
     # 制約条件
     constraints = cs.vertcat(
